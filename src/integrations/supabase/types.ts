@@ -14,16 +14,239 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      campaigns: {
+        Row: {
+          budget: number | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          owner_id: string
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          owner_id: string
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          owner_id?: string
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      deliverables: {
+        Row: {
+          briefing_text: string | null
+          campaign_id: string
+          created_at: string
+          creator_id: string
+          due_date: string | null
+          file_url: string | null
+          format: string
+          id: string
+          platform: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          briefing_text?: string | null
+          campaign_id: string
+          created_at?: string
+          creator_id: string
+          due_date?: string | null
+          file_url?: string | null
+          format: string
+          id?: string
+          platform: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          briefing_text?: string | null
+          campaign_id?: string
+          created_at?: string
+          creator_id?: string
+          due_date?: string | null
+          file_url?: string | null
+          format?: string
+          id?: string
+          platform?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliverables_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metrics_reports: {
+        Row: {
+          clicks: number | null
+          conversions: number | null
+          coupon_code: string | null
+          created_at: string
+          creator_id: string
+          deliverable_id: string
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          is_featured_on_portfolio: boolean
+          reach: number | null
+          revenue_registered: number | null
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          conversions?: number | null
+          coupon_code?: string | null
+          created_at?: string
+          creator_id: string
+          deliverable_id: string
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          is_featured_on_portfolio?: boolean
+          reach?: number | null
+          revenue_registered?: number | null
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          conversions?: number | null
+          coupon_code?: string | null
+          created_at?: string
+          creator_id?: string
+          deliverable_id?: string
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          is_featured_on_portfolio?: boolean
+          reach?: number | null
+          revenue_registered?: number | null
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_reports_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          instagram_handle: string | null
+          name: string
+          tiktok_handle: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+          youtube_handle: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          instagram_handle?: string | null
+          name?: string
+          tiktok_handle?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          youtube_handle?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          instagram_handle?: string | null
+          name?: string
+          tiktok_handle?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          youtube_handle?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "agency" | "creator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +373,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["agency", "creator"],
+    },
   },
 } as const
