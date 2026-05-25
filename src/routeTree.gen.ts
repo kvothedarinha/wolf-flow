@@ -9,38 +9,166 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CreatorIndexRouteImport } from './routes/creator/index'
+import { Route as AgencyIndexRouteImport } from './routes/agency/index'
+import { Route as PUsernameRouteImport } from './routes/p.$username'
+import { Route as CreatorReportsRouteImport } from './routes/creator/reports'
+import { Route as CreatorProfileRouteImport } from './routes/creator/profile'
+import { Route as AgencyProfileRouteImport } from './routes/agency/profile'
+import { Route as AgencyKanbanRouteImport } from './routes/agency/kanban'
+import { Route as AgencyCreatorsRouteImport } from './routes/agency/creators'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreatorIndexRoute = CreatorIndexRouteImport.update({
+  id: '/creator/',
+  path: '/creator/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgencyIndexRoute = AgencyIndexRouteImport.update({
+  id: '/agency/',
+  path: '/agency/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PUsernameRoute = PUsernameRouteImport.update({
+  id: '/p/$username',
+  path: '/p/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorReportsRoute = CreatorReportsRouteImport.update({
+  id: '/creator/reports',
+  path: '/creator/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorProfileRoute = CreatorProfileRouteImport.update({
+  id: '/creator/profile',
+  path: '/creator/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgencyProfileRoute = AgencyProfileRouteImport.update({
+  id: '/agency/profile',
+  path: '/agency/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgencyKanbanRoute = AgencyKanbanRouteImport.update({
+  id: '/agency/kanban',
+  path: '/agency/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgencyCreatorsRoute = AgencyCreatorsRouteImport.update({
+  id: '/agency/creators',
+  path: '/agency/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/agency/creators': typeof AgencyCreatorsRoute
+  '/agency/kanban': typeof AgencyKanbanRoute
+  '/agency/profile': typeof AgencyProfileRoute
+  '/creator/profile': typeof CreatorProfileRoute
+  '/creator/reports': typeof CreatorReportsRoute
+  '/p/$username': typeof PUsernameRoute
+  '/agency/': typeof AgencyIndexRoute
+  '/creator/': typeof CreatorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/agency/creators': typeof AgencyCreatorsRoute
+  '/agency/kanban': typeof AgencyKanbanRoute
+  '/agency/profile': typeof AgencyProfileRoute
+  '/creator/profile': typeof CreatorProfileRoute
+  '/creator/reports': typeof CreatorReportsRoute
+  '/p/$username': typeof PUsernameRoute
+  '/agency': typeof AgencyIndexRoute
+  '/creator': typeof CreatorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/agency/creators': typeof AgencyCreatorsRoute
+  '/agency/kanban': typeof AgencyKanbanRoute
+  '/agency/profile': typeof AgencyProfileRoute
+  '/creator/profile': typeof CreatorProfileRoute
+  '/creator/reports': typeof CreatorReportsRoute
+  '/p/$username': typeof PUsernameRoute
+  '/agency/': typeof AgencyIndexRoute
+  '/creator/': typeof CreatorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/agency/creators'
+    | '/agency/kanban'
+    | '/agency/profile'
+    | '/creator/profile'
+    | '/creator/reports'
+    | '/p/$username'
+    | '/agency/'
+    | '/creator/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/agency/creators'
+    | '/agency/kanban'
+    | '/agency/profile'
+    | '/creator/profile'
+    | '/creator/reports'
+    | '/p/$username'
+    | '/agency'
+    | '/creator'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/agency/creators'
+    | '/agency/kanban'
+    | '/agency/profile'
+    | '/creator/profile'
+    | '/creator/reports'
+    | '/p/$username'
+    | '/agency/'
+    | '/creator/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  AgencyCreatorsRoute: typeof AgencyCreatorsRoute
+  AgencyKanbanRoute: typeof AgencyKanbanRoute
+  AgencyProfileRoute: typeof AgencyProfileRoute
+  CreatorProfileRoute: typeof CreatorProfileRoute
+  CreatorReportsRoute: typeof CreatorReportsRoute
+  PUsernameRoute: typeof PUsernameRoute
+  AgencyIndexRoute: typeof AgencyIndexRoute
+  CreatorIndexRoute: typeof CreatorIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +176,77 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/creator/': {
+      id: '/creator/'
+      path: '/creator'
+      fullPath: '/creator/'
+      preLoaderRoute: typeof CreatorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agency/': {
+      id: '/agency/'
+      path: '/agency'
+      fullPath: '/agency/'
+      preLoaderRoute: typeof AgencyIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$username': {
+      id: '/p/$username'
+      path: '/p/$username'
+      fullPath: '/p/$username'
+      preLoaderRoute: typeof PUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator/reports': {
+      id: '/creator/reports'
+      path: '/creator/reports'
+      fullPath: '/creator/reports'
+      preLoaderRoute: typeof CreatorReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator/profile': {
+      id: '/creator/profile'
+      path: '/creator/profile'
+      fullPath: '/creator/profile'
+      preLoaderRoute: typeof CreatorProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agency/profile': {
+      id: '/agency/profile'
+      path: '/agency/profile'
+      fullPath: '/agency/profile'
+      preLoaderRoute: typeof AgencyProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agency/kanban': {
+      id: '/agency/kanban'
+      path: '/agency/kanban'
+      fullPath: '/agency/kanban'
+      preLoaderRoute: typeof AgencyKanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agency/creators': {
+      id: '/agency/creators'
+      path: '/agency/creators'
+      fullPath: '/agency/creators'
+      preLoaderRoute: typeof AgencyCreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  AgencyCreatorsRoute: AgencyCreatorsRoute,
+  AgencyKanbanRoute: AgencyKanbanRoute,
+  AgencyProfileRoute: AgencyProfileRoute,
+  CreatorProfileRoute: CreatorProfileRoute,
+  CreatorReportsRoute: CreatorReportsRoute,
+  PUsernameRoute: PUsernameRoute,
+  AgencyIndexRoute: AgencyIndexRoute,
+  CreatorIndexRoute: CreatorIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
