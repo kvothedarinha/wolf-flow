@@ -189,15 +189,18 @@ function HabitRow({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 transition-opacity ${done ? "opacity-60" : ""}`}
+      className={`flex items-center gap-3 px-4 py-3 transition-opacity hover:bg-secondary/40 ${done ? "opacity-60" : ""}`}
     >
-      <div
+      <Link
+        to="/habit/$id"
+        params={{ id: habit.id }}
         className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
         style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+        aria-label={`Detalhes de ${habit.name}`}
       >
         <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
-      </div>
-      <div className="flex-1 min-w-0">
+      </Link>
+      <Link to="/habit/$id" params={{ id: habit.id }} className="flex-1 min-w-0">
         <div
           className={`text-[15px] font-semibold truncate ${done ? "line-through decoration-[1.5px] text-muted-foreground" : ""}`}
         >
@@ -224,7 +227,7 @@ function HabitRow({
           )}
           {streak === 0 && habit.frequency !== "weekly" && <span>Comece uma sequência</span>}
         </div>
-      </div>
+      </Link>
       <HabitCheckbox
         done={done}
         color={habit.color}

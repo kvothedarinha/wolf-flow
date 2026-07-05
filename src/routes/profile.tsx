@@ -6,10 +6,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, Sun, Moon, Monitor } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme, type Theme } from "@/hooks/useTheme";
 import { toast } from "sonner";
+
+const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Claro", icon: Sun },
+  { value: "dark", label: "Escuro", icon: Moon },
+  { value: "system", label: "Sistema", icon: Monitor },
+];
 
 export const Route = createFileRoute("/profile")({ component: ProfilePage });
 
@@ -51,12 +58,37 @@ function ProfilePage() {
     }
   }
 
+  const { theme, setTheme } = useTheme();
+
   return (
     <AppShell>
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Perfil</h1>
-        <p className="text-sm text-muted-foreground">Seus dados de conta</p>
+        <h1 className="text-[26px] font-extrabold tracking-tight">Perfil</h1>
+        <p className="text-sm text-muted-foreground">Seus dados e preferências</p>
       </div>
+
+      <Card className="mb-4">
+        <CardContent className="p-4 space-y-2">
+          <Label>Tema</Label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                onClick={() => setTheme(value)}
+                aria-pressed={theme === value}
+                className={`flex flex-col items-center gap-1 rounded-xl py-2.5 text-xs font-medium transition-colors ${
+                  theme === value
+                    ? "bg-accent text-accent-foreground shadow-sm"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {isLoading ? (
         <div className="text-sm text-muted-foreground text-center py-8">Carregando...</div>

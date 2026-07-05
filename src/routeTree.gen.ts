@@ -9,12 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as HabitsRouteImport } from './routes/habits'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HabitIdRouteImport } from './routes/habit.$id'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -40,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HabitIdRoute = HabitIdRouteImport.update({
+  id: '/habit/$id',
+  path: '/habit/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
+  '/welcome': typeof WelcomeRoute
+  '/habit/$id': typeof HabitIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
+  '/welcome': typeof WelcomeRoute
+  '/habit/$id': typeof HabitIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +78,37 @@ export interface FileRoutesById {
   '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
+  '/welcome': typeof WelcomeRoute
+  '/habit/$id': typeof HabitIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/habits' | '/profile' | '/stats'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/habits'
+    | '/profile'
+    | '/stats'
+    | '/welcome'
+    | '/habit/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/habits' | '/profile' | '/stats'
-  id: '__root__' | '/' | '/auth' | '/habits' | '/profile' | '/stats'
+  to:
+    | '/'
+    | '/auth'
+    | '/habits'
+    | '/profile'
+    | '/stats'
+    | '/welcome'
+    | '/habit/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/habits'
+    | '/profile'
+    | '/stats'
+    | '/welcome'
+    | '/habit/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +117,19 @@ export interface RootRouteChildren {
   HabitsRoute: typeof HabitsRoute
   ProfileRoute: typeof ProfileRoute
   StatsRoute: typeof StatsRoute
+  WelcomeRoute: typeof WelcomeRoute
+  HabitIdRoute: typeof HabitIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stats': {
       id: '/stats'
       path: '/stats'
@@ -116,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/habit/$id': {
+      id: '/habit/$id'
+      path: '/habit/$id'
+      fullPath: '/habit/$id'
+      preLoaderRoute: typeof HabitIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   HabitsRoute: HabitsRoute,
   ProfileRoute: ProfileRoute,
   StatsRoute: StatsRoute,
+  WelcomeRoute: WelcomeRoute,
+  HabitIdRoute: HabitIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -85,6 +85,23 @@ export function useDeleteHabit() {
   });
 }
 
+/** Salva a nota de um check-in existente. */
+export function useSaveEntryNote() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async ({ habitId, date, note }: { habitId: string; date: Date; note: string }) => {
+      const { error } = await supabase
+        .from("habit_entries")
+        .update({ note: note.trim() || null })
+        .eq("habit_id", habitId)
+        .eq("entry_date", toDateKey(date));
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
 /** Marca/desmarca o check-in de um hábito em uma data. */
 export function useToggleEntry() {
   const { user } = useAuth();

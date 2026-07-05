@@ -63,6 +63,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      {
+        // Aplica o tema salvo antes do primeiro paint para evitar flash
+        children: `try{var t=localStorage.getItem("tf-theme");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d)}catch(e){}`,
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

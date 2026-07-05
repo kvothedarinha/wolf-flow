@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Flame, CheckCircle2, TrendingUp } from "lucide-react";
 import { useHabits, useEntries, HISTORY_DAYS } from "@/hooks/useHabits";
 import { HabitIcon } from "@/lib/habit-icons";
+import { StatTile } from "@/components/StatTile";
 import {
   entriesByHabit,
   currentStreak,
@@ -51,17 +52,17 @@ function StatsPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-2.5 mb-6">
-        <SummaryCard
+        <StatTile
           icon={<CheckCircle2 className="h-4 w-4" />}
           label="Check-ins (7d)"
           value={String(totalLast7)}
         />
-        <SummaryCard
+        <StatTile
           icon={<Flame className="h-4 w-4" />}
           label="Maior streak"
           value={String(bestStreak)}
         />
-        <SummaryCard
+        <StatTile
           icon={<TrendingUp className="h-4 w-4" />}
           label="Taxa (30d)"
           value={`${Math.round(avgRate * 100)}%`}
@@ -216,28 +217,6 @@ function HistoryHeatmap({
           ))}
           Mais
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function SummaryCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="p-3">
-        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] mb-1">
-          {icon}
-          {label}
-        </div>
-        <div className="text-[22px] font-extrabold tabular-nums">{value}</div>
       </CardContent>
     </Card>
   );

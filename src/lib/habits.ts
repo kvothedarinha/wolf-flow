@@ -75,6 +75,54 @@ function weeklyStreak(habit: Habit, doneDates: Set<string>, today: Date): number
   return streak;
 }
 
+/** Maior sequência já atingida dentro da janela de histórico carregada. */
+export function bestStreak(
+  habit: Habit,
+  doneDates: Set<string>,
+  windowDays: number,
+  today = new Date(),
+): number {
+  if (habit.frequency === "weekly") {
+    let best = 0;
+    let run = 0;
+    let weekStart = startOfWeek(subDays(today, windowDays), { weekStartsOn: 0 });
+    const currentWeek = startOfWeek(today, { weekStartsOn: 0 });
+    while (weekStart <= currentWeek) {
+      const done = Array.from({ length: 7 }, (_, d) => addDays(weekStart, d)).filter((d) =>
+        doneDates.has(toDateKey(d)),
+      ).length;
+      if (done >= habit.target_per_week) {
+        run++;
+        best = Math.max(best, run);
+      } else if (weekStart < currentWeek) {
+        run = 0; // semana atual incompleta não zera a sequência em andamento
+      }
+      weekStart = addDays(weekStart, 7);
+    }
+    return best;
+  }
+  let best = 0;
+  let run = 0;
+  for (let i = windowDays; i >= 0; i--) {
+    const day = subDays(today, i);
+    if (!isScheduledOn(habit, day)) continue;
+    if (doneDates.has(toDateKey(day))) {
+      run++;
+      best = Math.max(best, run);
+    } else if (i > 0) {
+      run = 0; // hoje sem check-in ainda não quebra
+    }
+  }
+  return best;
+}
+
+/** Rótulo curto da agenda do hábito (ex.: "Todos os dias", "S T Q", "3x por semana"). */
+export function scheduleLabel(habit: Habit): string {
+  if (habit.frequency === "weekly") return `${habit.target_per_week}x por semana`;
+  if (habit.weekdays.length === 7) return "Todos os dias";
+  return habit.weekdays.map((d) => WEEKDAY_LABELS[d]).join(" ");
+}
+
 /** Taxa de conclusão nos últimos N dias (dias agendados concluídos / dias agendados). */
 export function completionRate(
   habit: Habit,

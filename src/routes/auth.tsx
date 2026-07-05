@@ -21,7 +21,11 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && session) navigate({ to: "/" });
+    if (authLoading || !session) return;
+    // Cadastro recém-feito neste dispositivo vai para o onboarding uma única vez
+    const pending = localStorage.getItem("tf-welcome-pending") === "1";
+    const onboarded = localStorage.getItem("tf-onboarded") === "1";
+    navigate({ to: pending && !onboarded ? "/welcome" : "/" });
   }, [authLoading, session, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -38,6 +42,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        localStorage.setItem("tf-welcome-pending", "1");
         toast.success("Conta criada! Entrando...");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });

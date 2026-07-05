@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { HabitForm } from "@/components/HabitForm";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, MoreVertical, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { useHabits, useSaveHabit, useDeleteHabit } from "@/hooks/useHabits";
-import { WEEKDAY_LABELS, type Habit } from "@/lib/habits";
+import { scheduleLabel, type Habit } from "@/lib/habits";
 import { HabitIcon } from "@/lib/habit-icons";
 import { toast } from "sonner";
 
@@ -163,29 +163,25 @@ function HabitCard({
   onArchive: () => void;
   onDelete: () => void;
 }) {
-  const scheduleLabel =
-    habit.frequency === "weekly"
-      ? `${habit.target_per_week}x por semana`
-      : habit.weekdays.length === 7
-        ? "Todos os dias"
-        : habit.weekdays.map((d) => WEEKDAY_LABELS[d]).join(" ");
-
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors">
+      <Link
+        to="/habit/$id"
+        params={{ id: habit.id }}
         className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
         style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+        aria-label={`Detalhes de ${habit.name}`}
       >
         <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
-      </div>
-      <div className="flex-1 min-w-0">
+      </Link>
+      <Link to="/habit/$id" params={{ id: habit.id }} className="flex-1 min-w-0">
         <div className="text-[15px] font-semibold truncate">{habit.name}</div>
         <div className="mt-0.5">
           <Badge variant="secondary" className="text-[10px] font-normal">
-            {scheduleLabel}
+            {scheduleLabel(habit)}
           </Badge>
         </div>
-      </div>
+      </Link>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" aria-label={`Opções de ${habit.name}`}>
