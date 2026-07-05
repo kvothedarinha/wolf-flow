@@ -82,7 +82,7 @@ function StatsPage() {
           <HistoryHeatmap habits={active} entries={entries ?? []} today={today} />
 
           <SectionLabel className="mt-7">Últimos 7 dias por hábito</SectionLabel>
-          <div className="flex items-center justify-end gap-1 pr-3 mb-1.5">
+          <div className="flex items-center justify-end gap-1 pr-4 mb-1.5">
             {last7.map((d) => (
               <div
                 key={toDateKey(d)}
@@ -92,17 +92,19 @@ function StatsPage() {
               </div>
             ))}
           </div>
-          <div className="space-y-2.5">
-            {active.map((habit) => (
-              <HabitStatsRow
-                key={habit.id}
-                habit={habit}
-                dates={byHabit.get(habit.id) ?? new Set()}
-                days={last7}
-                today={today}
-              />
-            ))}
-          </div>
+          <Card>
+            <CardContent className="p-0 divide-y divide-border">
+              {active.map((habit) => (
+                <HabitStatsRow
+                  key={habit.id}
+                  habit={habit}
+                  dates={byHabit.get(habit.id) ?? new Set()}
+                  days={last7}
+                  today={today}
+                />
+              ))}
+            </CardContent>
+          </Card>
         </>
       )}
     </AppShell>
@@ -256,43 +258,41 @@ function HabitStatsRow({
   const streak = currentStreak(habit, dates, today);
 
   return (
-    <Card>
-      <CardContent className="p-3">
-        <div className="flex items-center gap-3">
-          <div
-            className="h-10 w-10 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
-          >
-            <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold truncate">{habit.name}</div>
-            <div className="text-xs text-muted-foreground flex items-center gap-2 tabular-nums">
-              <span>{Math.round(rate * 100)}% em 30 dias</span>
-              {streak > 0 && (
-                <span className="inline-flex items-center gap-0.5 font-medium text-warning">
-                  <Flame className="h-3 w-3" />
-                  {streak}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            {days.map((day) => {
-              const done = dates.has(toDateKey(day));
-              const scheduled = isScheduledOn(habit, day);
-              return (
-                <div
-                  key={toDateKey(day)}
-                  title={format(day, "dd/MM")}
-                  className={`h-6 w-6 rounded-lg ${done ? "" : scheduled ? "bg-secondary" : "bg-secondary/40"}`}
-                  style={done ? { backgroundColor: habit.color } : undefined}
-                />
-              );
-            })}
+    <div className="px-4 py-3">
+      <div className="flex items-center gap-3">
+        <div
+          className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+        >
+          <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold truncate">{habit.name}</div>
+          <div className="text-xs text-muted-foreground flex items-center gap-2 tabular-nums">
+            <span>{Math.round(rate * 100)}% em 30 dias</span>
+            {streak > 0 && (
+              <span className="inline-flex items-center gap-0.5 font-medium text-warning">
+                <Flame className="h-3 w-3" />
+                {streak}
+              </span>
+            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-1">
+          {days.map((day) => {
+            const done = dates.has(toDateKey(day));
+            const scheduled = isScheduledOn(habit, day);
+            return (
+              <div
+                key={toDateKey(day)}
+                title={format(day, "dd/MM")}
+                className={`h-6 w-6 rounded-lg ${done ? "" : scheduled ? "bg-secondary" : "bg-secondary/40"}`}
+                style={done ? { backgroundColor: habit.color } : undefined}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

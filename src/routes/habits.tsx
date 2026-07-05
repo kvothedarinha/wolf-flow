@@ -51,13 +51,14 @@ function HabitsPage() {
     <AppShell>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Hábitos</h1>
+          <h1 className="text-[26px] font-extrabold tracking-tight">Hábitos</h1>
           <p className="text-sm text-muted-foreground">
             Crie e organize o que você quer acompanhar
           </p>
         </div>
         <Button
           size="sm"
+          className="rounded-full px-4"
           onClick={() => {
             setEditing(null);
             setFormOpen(true);
@@ -78,40 +79,44 @@ function HabitsPage() {
         </Card>
       ) : (
         <>
-          <div className="space-y-2">
-            {active.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                onEdit={() => {
-                  setEditing(habit);
-                  setFormOpen(true);
-                }}
-                onArchive={() => toggleArchive(habit)}
-                onDelete={() => setDeleting(habit)}
-              />
-            ))}
-          </div>
+          <Card>
+            <CardContent className="p-0 divide-y divide-border">
+              {active.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  onEdit={() => {
+                    setEditing(habit);
+                    setFormOpen(true);
+                  }}
+                  onArchive={() => toggleArchive(habit)}
+                  onDelete={() => setDeleting(habit)}
+                />
+              ))}
+            </CardContent>
+          </Card>
 
           {archived.length > 0 && (
             <>
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mt-8 mb-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mt-8 mb-2">
                 Arquivados
               </div>
-              <div className="space-y-2 opacity-60">
-                {archived.map((habit) => (
-                  <HabitCard
-                    key={habit.id}
-                    habit={habit}
-                    onEdit={() => {
-                      setEditing(habit);
-                      setFormOpen(true);
-                    }}
-                    onArchive={() => toggleArchive(habit)}
-                    onDelete={() => setDeleting(habit)}
-                  />
-                ))}
-              </div>
+              <Card className="opacity-60">
+                <CardContent className="p-0 divide-y divide-border">
+                  {archived.map((habit) => (
+                    <HabitCard
+                      key={habit.id}
+                      habit={habit}
+                      onEdit={() => {
+                        setEditing(habit);
+                        setFormOpen(true);
+                      }}
+                      onArchive={() => toggleArchive(habit)}
+                      onDelete={() => setDeleting(habit)}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
             </>
           )}
         </>
@@ -166,56 +171,51 @@ function HabitCard({
         : habit.weekdays.map((d) => WEEKDAY_LABELS[d]).join(" ");
 
   return (
-    <Card>
-      <CardContent className="p-3 flex items-center gap-3">
-        <div
-          className="h-11 w-11 rounded-2xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
-        >
-          <HabitIcon name={habit.icon} className="h-5 w-5" />
+    <div className="flex items-center gap-3 px-4 py-3">
+      <div
+        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+      >
+        <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[15px] font-semibold truncate">{habit.name}</div>
+        <div className="mt-0.5">
+          <Badge variant="secondary" className="text-[10px] font-normal">
+            {scheduleLabel}
+          </Badge>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-[15px] font-semibold truncate">{habit.name}</div>
-          <div className="mt-0.5">
-            <Badge variant="secondary" className="text-[10px] font-normal">
-              {scheduleLabel}
-            </Badge>
-          </div>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label={`Opções de ${habit.name}`}>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onArchive}>
-              {habit.archived ? (
-                <>
-                  <ArchiveRestore className="h-4 w-4 mr-2" />
-                  Reativar
-                </>
-              ) : (
-                <>
-                  <Archive className="h-4 w-4 mr-2" />
-                  Arquivar
-                </>
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={onDelete}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Excluir
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardContent>
-    </Card>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" aria-label={`Opções de ${habit.name}`}>
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onEdit}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Editar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onArchive}>
+            {habit.archived ? (
+              <>
+                <ArchiveRestore className="h-4 w-4 mr-2" />
+                Reativar
+              </>
+            ) : (
+              <>
+                <Archive className="h-4 w-4 mr-2" />
+                Arquivar
+              </>
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Excluir
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

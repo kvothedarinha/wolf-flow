@@ -4,9 +4,10 @@ import { format, isSameDay, isAfter, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { ProgressRing } from "@/components/ProgressRing";
+import { HabitCheckbox } from "@/components/HabitCheckbox";
 import { Button } from "@/components/ui/button";
-import { Check, Flame, Plus } from "lucide-react";
+import { Flame, Plus } from "lucide-react";
 import { useHabits, useEntries, useToggleEntry } from "@/hooks/useHabits";
 import { HabitIcon } from "@/lib/habit-icons";
 import {
@@ -22,12 +23,20 @@ import {
 
 export const Route = createFileRoute("/")({ component: TodayPage });
 
+function greeting(hour: number): string {
+  if (hour < 5) return "Boa madrugada";
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
 function TodayPage() {
   const { data: habits, isLoading: loadingHabits } = useHabits();
   const { data: entries, isLoading: loadingEntries } = useEntries();
   const toggle = useToggleEntry();
 
-  const today = startOfDay(new Date());
+  const now = new Date();
+  const today = startOfDay(now);
   const [selectedDay, setSelectedDay] = useState(today);
   const isToday = isSameDay(selectedDay, today);
 
@@ -41,10 +50,10 @@ function TodayPage() {
     <AppShell>
       <div className="mb-5">
         <h1 className="text-[26px] font-extrabold tracking-tight">
-          {isToday ? "Hoje" : format(selectedDay, "EEEE", { locale: ptBR })}
+          {isToday ? greeting(now.getHours()) : format(selectedDay, "EEEE", { locale: ptBR })}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {format(selectedDay, "d 'de' MMMM", { locale: ptBR })}
+        <p className="text-sm text-muted-foreground capitalize">
+          {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </p>
       </div>
 
@@ -52,16 +61,23 @@ function TodayPage() {
 
       {scheduled.length > 0 && (
         <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2 text-sm">
-              <span className="text-muted-foreground">
-                {isToday ? "Progresso do dia" : "Concluídos neste dia"}
-              </span>
-              <span className="font-bold tabular-nums">
-                {doneCount}/{scheduled.length}
-              </span>
+          <CardContent className="p-4 flex items-center gap-4">
+            <ProgressRing
+              value={scheduled.length ? doneCount / scheduled.length : 0}
+              label={isToday ? "do dia" : "do dia"}
+            />
+            <div>
+              <div className="text-lg font-extrabold tabular-nums">
+                {doneCount} de {scheduled.length}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {doneCount === scheduled.length
+                  ? "Tudo concluído. Excelente!"
+                  : isToday
+                    ? "hábitos concluídos hoje"
+                    : "hábitos concluídos neste dia"}
+              </p>
             </div>
-            <Progress value={scheduled.length ? (doneCount / scheduled.length) * 100 : 0} />
           </CardContent>
         </Card>
       )}
@@ -85,23 +101,25 @@ function TodayPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2.5">
-          {scheduled.map((habit) => {
-            const dates = byHabit.get(habit.id) ?? new Set<string>();
-            const done = dates.has(dayKey);
-            return (
-              <HabitRow
-                key={habit.id}
-                habit={habit}
-                done={done}
-                streak={currentStreak(habit, dates, today)}
-                weekCount={completionsThisWeek(habit, dates, today)}
-                pending={toggle.isPending}
-                onToggle={() => toggle.mutate({ habitId: habit.id, date: selectedDay, done })}
-              />
-            );
-          })}
-        </div>
+        <Card>
+          <CardContent className="p-0 divide-y divide-border">
+            {scheduled.map((habit) => {
+              const dates = byHabit.get(habit.id) ?? new Set<string>();
+              const done = dates.has(dayKey);
+              return (
+                <HabitRow
+                  key={habit.id}
+                  habit={habit}
+                  done={done}
+                  streak={currentStreak(habit, dates, today)}
+                  weekCount={completionsThisWeek(habit, dates, today)}
+                  pending={toggle.isPending}
+                  onToggle={() => toggle.mutate({ habitId: habit.id, date: selectedDay, done })}
+                />
+              );
+            })}
+          </CardContent>
+        </Card>
       )}
     </AppShell>
   );
@@ -170,54 +188,50 @@ function HabitRow({
   onToggle: () => void;
 }) {
   return (
-    <Card className={done ? "opacity-70" : ""}>
-      <CardContent className="p-3 flex items-center gap-3">
+    <div
+      className={`flex items-center gap-3 px-4 py-3 transition-opacity ${done ? "opacity-60" : ""}`}
+    >
+      <div
+        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+      >
+        <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
+      </div>
+      <div className="flex-1 min-w-0">
         <div
-          className="h-11 w-11 rounded-2xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+          className={`text-[15px] font-semibold truncate ${done ? "line-through decoration-[1.5px] text-muted-foreground" : ""}`}
         >
-          <HabitIcon name={habit.icon} className="h-5 w-5" />
+          {habit.name}
         </div>
-        <div className="flex-1 min-w-0">
-          <div
-            className={`text-[15px] font-semibold truncate ${done ? "line-through text-muted-foreground" : ""}`}
-          >
-            {habit.name}
-          </div>
-          <div className="text-xs text-muted-foreground flex items-center gap-2 tabular-nums">
-            {streak > 0 && (
-              <span className="inline-flex items-center gap-0.5 font-medium text-warning">
-                <Flame className="h-3 w-3" />
-                {streak}{" "}
-                {habit.frequency === "weekly"
-                  ? streak === 1
-                    ? "semana"
-                    : "semanas"
-                  : streak === 1
-                    ? "dia"
-                    : "dias"}
-              </span>
-            )}
-            {habit.frequency === "weekly" && (
-              <span>
-                {weekCount}/{habit.target_per_week} esta semana
-              </span>
-            )}
-            {streak === 0 && habit.frequency !== "weekly" && <span>Comece uma sequência</span>}
-          </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-2 tabular-nums">
+          {streak > 0 && (
+            <span className="inline-flex items-center gap-0.5 font-medium text-warning">
+              <Flame className="h-3 w-3" />
+              {streak}{" "}
+              {habit.frequency === "weekly"
+                ? streak === 1
+                  ? "semana"
+                  : "semanas"
+                : streak === 1
+                  ? "dia"
+                  : "dias"}
+            </span>
+          )}
+          {habit.frequency === "weekly" && (
+            <span>
+              {weekCount}/{habit.target_per_week} esta semana
+            </span>
+          )}
+          {streak === 0 && habit.frequency !== "weekly" && <span>Comece uma sequência</span>}
         </div>
-        <button
-          onClick={onToggle}
-          disabled={pending}
-          aria-label={done ? `Desmarcar ${habit.name}` : `Concluir ${habit.name}`}
-          className={`h-11 w-11 rounded-full border-2 flex items-center justify-center transition-all shrink-0 active:scale-90 ${
-            done ? "text-white" : "border-border text-transparent hover:border-ring"
-          }`}
-          style={done ? { backgroundColor: habit.color, borderColor: habit.color } : undefined}
-        >
-          <Check className="h-5 w-5" strokeWidth={3} />
-        </button>
-      </CardContent>
-    </Card>
+      </div>
+      <HabitCheckbox
+        done={done}
+        color={habit.color}
+        disabled={pending}
+        onToggle={onToggle}
+        label={done ? `Desmarcar ${habit.name}` : `Concluir ${habit.name}`}
+      />
+    </div>
   );
 }
