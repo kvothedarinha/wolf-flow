@@ -24,6 +24,7 @@ import {
 import { Plus, MoreVertical, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { useHabits, useSaveHabit, useDeleteHabit } from "@/hooks/useHabits";
 import { WEEKDAY_LABELS, type Habit } from "@/lib/habits";
+import { HabitIcon } from "@/lib/habit-icons";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/habits")({ component: HabitsPage });
@@ -168,13 +169,13 @@ function HabitCard({
     <Card>
       <CardContent className="p-3 flex items-center gap-3">
         <div
-          className="h-10 w-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-          style={{ backgroundColor: `${habit.color}20` }}
+          className="h-11 w-11 rounded-2xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
         >
-          {habit.emoji}
+          <HabitIcon name={habit.icon} className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate">{habit.name}</div>
+          <div className="text-[15px] font-semibold truncate">{habit.name}</div>
           <div className="mt-0.5">
             <Badge variant="secondary" className="text-[10px] font-normal">
               {scheduleLabel}

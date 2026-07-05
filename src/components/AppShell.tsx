@@ -34,11 +34,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
         <div className="mx-auto max-w-3xl px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+            <div className="h-8 w-8 rounded-xl bg-accent text-accent-foreground flex items-center justify-center">
               <Waves className="h-4 w-4" />
             </div>
             <div>
-              <div className="text-sm font-semibold leading-tight">Track Flow</div>
+              <div className="text-sm font-extrabold leading-tight tracking-tight">Track Flow</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                 Hábitos
               </div>
@@ -69,11 +69,17 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center justify-center gap-1 py-3 text-[11px] transition-colors ${
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] transition-colors ${
+                  active ? "font-semibold" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <span
+                  className={`flex items-center justify-center h-7 w-12 rounded-full transition-colors ${
+                    active ? "bg-accent text-accent-foreground" : ""
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
                 <span>{item.label}</span>
               </Link>
             );

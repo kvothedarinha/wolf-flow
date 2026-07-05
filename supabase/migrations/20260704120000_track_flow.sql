@@ -38,7 +38,7 @@ CREATE TABLE public.habits (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
-  emoji TEXT NOT NULL DEFAULT '✅',
+  icon TEXT NOT NULL DEFAULT 'check',
   color TEXT NOT NULL DEFAULT '#6366f1',
   -- daily: segue os dias marcados em weekdays; weekly: meta livre de X check-ins na semana
   frequency TEXT NOT NULL DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly')),

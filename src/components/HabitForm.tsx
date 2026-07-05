@@ -13,9 +13,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useSaveHabit } from "@/hooks/useHabits";
 import { HABIT_COLORS, WEEKDAY_LABELS, type Habit } from "@/lib/habits";
+import { HabitIcon, HABIT_ICON_NAMES } from "@/lib/habit-icons";
 import { toast } from "sonner";
-
-const EMOJI_SUGGESTIONS = ["💧", "🏃", "📖", "🧘", "💪", "🥗", "😴", "✍️", "🎸", "🚭"];
 
 interface HabitFormProps {
   open: boolean;
@@ -26,7 +25,7 @@ interface HabitFormProps {
 export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
   const save = useSaveHabit();
   const [name, setName] = useState("");
-  const [emoji, setEmoji] = useState("✅");
+  const [icon, setIcon] = useState("check");
   const [color, setColor] = useState(HABIT_COLORS[0]);
   const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
   const [weekdays, setWeekdays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
@@ -35,7 +34,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
   useEffect(() => {
     if (!open) return;
     setName(habit?.name ?? "");
-    setEmoji(habit?.emoji ?? "✅");
+    setIcon(habit?.icon ?? "check");
     setColor(habit?.color ?? HABIT_COLORS[0]);
     setFrequency((habit?.frequency as "daily" | "weekly") ?? "daily");
     setWeekdays(habit?.weekdays ?? [0, 1, 2, 3, 4, 5, 6]);
@@ -57,7 +56,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
       {
         id: habit?.id,
         name: name.trim(),
-        emoji: emoji.trim() || "✅",
+        icon,
         color,
         frequency,
         weekdays,
@@ -91,29 +90,24 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Emoji</Label>
+            <Label>Ícone</Label>
             <div className="flex flex-wrap gap-1.5">
-              {EMOJI_SUGGESTIONS.map((e) => (
+              {HABIT_ICON_NAMES.map((n) => (
                 <button
-                  key={e}
+                  key={n}
                   type="button"
-                  onClick={() => setEmoji(e)}
-                  className={`h-9 w-9 rounded-lg text-lg transition-colors ${
-                    emoji === e
-                      ? "bg-primary/15 ring-2 ring-primary/40"
-                      : "bg-secondary hover:bg-secondary/70"
+                  onClick={() => setIcon(n)}
+                  className={`h-10 w-10 rounded-xl flex items-center justify-center transition-colors ${
+                    icon === n
+                      ? "text-accent-foreground bg-accent shadow-sm"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
                   }`}
+                  aria-label={`Ícone ${n}`}
+                  aria-pressed={icon === n}
                 >
-                  {e}
+                  <HabitIcon name={n} className="h-5 w-5" />
                 </button>
               ))}
-              <Input
-                value={emoji}
-                onChange={(e) => setEmoji(e.target.value)}
-                className="h-9 w-14 text-center"
-                maxLength={4}
-                aria-label="Emoji personalizado"
-              />
             </div>
           </div>
 
