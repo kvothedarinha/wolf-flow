@@ -51,6 +51,7 @@ export type Database = {
           description: string | null;
           icon: string;
           frequency: string;
+          group_name: string | null;
           id: string;
           name: string;
           target_per_week: number;
@@ -65,6 +66,7 @@ export type Database = {
           description?: string | null;
           icon?: string;
           frequency?: string;
+          group_name?: string | null;
           id?: string;
           name: string;
           target_per_week?: number;
@@ -79,6 +81,7 @@ export type Database = {
           description?: string | null;
           icon?: string;
           frequency?: string;
+          group_name?: string | null;
           id?: string;
           name?: string;
           target_per_week?: number;

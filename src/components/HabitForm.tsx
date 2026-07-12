@@ -30,6 +30,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
   const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
   const [weekdays, setWeekdays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [targetPerWeek, setTargetPerWeek] = useState(3);
+  const [group, setGroup] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -39,6 +40,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
     setFrequency((habit?.frequency as "daily" | "weekly") ?? "daily");
     setWeekdays(habit?.weekdays ?? [0, 1, 2, 3, 4, 5, 6]);
     setTargetPerWeek(habit?.target_per_week ?? 3);
+    setGroup(habit?.group_name ?? "");
   }, [open, habit]);
 
   function toggleWeekday(day: number) {
@@ -61,6 +63,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
         frequency,
         weekdays,
         target_per_week: targetPerWeek,
+        group_name: group.trim() || null,
       },
       {
         onSuccess: () => {
@@ -178,6 +181,16 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
               </div>
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="habit-group">Grupo (opcional)</Label>
+            <Input
+              id="habit-group"
+              value={group}
+              onChange={(e) => setGroup(e.target.value)}
+              placeholder="Ex.: Manhã, Saúde, Estudos"
+            />
+          </div>
 
           <DialogFooter>
             <Button type="submit" disabled={save.isPending} className="w-full">

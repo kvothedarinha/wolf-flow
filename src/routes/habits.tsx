@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, MoreVertical, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { useHabits, useSaveHabit, useDeleteHabit } from "@/hooks/useHabits";
-import { scheduleLabel, type Habit } from "@/lib/habits";
+import { scheduleLabel, groupHabits, type Habit } from "@/lib/habits";
 import { HabitIcon } from "@/lib/habit-icons";
 import { toast } from "sonner";
 
@@ -79,22 +79,33 @@ function HabitsPage() {
         </Card>
       ) : (
         <>
-          <Card>
-            <CardContent className="p-0 divide-y divide-border">
-              {active.map((habit) => (
-                <HabitCard
-                  key={habit.id}
-                  habit={habit}
-                  onEdit={() => {
-                    setEditing(habit);
-                    setFormOpen(true);
-                  }}
-                  onArchive={() => toggleArchive(habit)}
-                  onDelete={() => setDeleting(habit)}
-                />
-              ))}
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            {groupHabits(active).map(({ group, habits: items }) => (
+              <div key={group ?? "__sem_grupo"}>
+                {group && (
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                    {group}
+                  </div>
+                )}
+                <Card className="overflow-hidden">
+                  <CardContent className="p-0 divide-y divide-border">
+                    {items.map((habit) => (
+                      <HabitCard
+                        key={habit.id}
+                        habit={habit}
+                        onEdit={() => {
+                          setEditing(habit);
+                          setFormOpen(true);
+                        }}
+                        onArchive={() => toggleArchive(habit)}
+                        onDelete={() => setDeleting(habit)}
+                      />
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
 
           {archived.length > 0 && (
             <>
@@ -164,7 +175,10 @@ function HabitCard({
   onDelete: () => void;
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors">
+    <div
+      className="flex items-center gap-3 px-4 py-3 transition-colors"
+      style={{ backgroundColor: `${habit.color}12` }}
+    >
       <Link
         to="/habit/$id"
         params={{ id: habit.id }}

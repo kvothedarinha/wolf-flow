@@ -152,6 +152,22 @@ export function completionRate(
   return scheduled === 0 ? 0 : done / scheduled;
 }
 
+/** Agrupa hábitos por group_name: sem grupo primeiro, depois grupos em ordem alfabética. */
+export function groupHabits(habits: Habit[]): { group: string | null; habits: Habit[] }[] {
+  const map = new Map<string | null, Habit[]>();
+  for (const h of habits) {
+    const g = h.group_name?.trim() || null;
+    const list = map.get(g);
+    if (list) list.push(h);
+    else map.set(g, [h]);
+  }
+  return [...map.entries()]
+    .map(([group, items]) => ({ group, habits: items }))
+    .sort((a, b) =>
+      a.group === null ? -1 : b.group === null ? 1 : a.group.localeCompare(b.group, "pt-BR"),
+    );
+}
+
 /** Agrupa entries por hábito como Set de datas ("yyyy-MM-dd"). */
 export function entriesByHabit(entries: HabitEntry[]): Map<string, Set<string>> {
   const map = new Map<string, Set<string>>();

@@ -6,8 +6,8 @@ import { toDateKey, type Habit, type HabitEntry } from "@/lib/habits";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
-/** Janela de histórico carregada para streaks e estatísticas. */
-export const HISTORY_DAYS = 120;
+/** Janela de histórico carregada para streaks, conquistas e estatísticas. */
+export const HISTORY_DAYS = 366;
 
 export function useHabits() {
   const { user } = useAuth();

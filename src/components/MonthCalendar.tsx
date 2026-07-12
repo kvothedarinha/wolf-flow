@@ -97,14 +97,24 @@ export function MonthCalendar({
             const future = isAfter(date, today);
             const scheduled = isScheduledOn(habit, date);
             const isToday = key === toDateKey(today);
+            // dia anterior também concluído e na mesma linha → conector de sequência
+            const linked =
+              done && date.getDay() !== 0 && entriesByDate.has(toDateKey(subDays(date, 1)));
             return (
-              <div key={key} className="flex justify-center">
+              <div key={key} className="relative flex justify-center">
+                {linked && (
+                  <span
+                    aria-hidden
+                    className="absolute top-1/2 -translate-y-1/2 h-2 -left-1/2 w-full"
+                    style={{ backgroundColor: `${habit.color}55` }}
+                  />
+                )}
                 <button
                   disabled={future}
                   onClick={() => onDayClick(date, entry)}
                   aria-label={format(date, "d 'de' MMMM", { locale: ptBR })}
                   aria-pressed={done}
-                  className={`relative h-9 w-9 rounded-xl text-sm tabular-nums transition-colors ${
+                  className={`relative z-10 h-9 w-9 rounded-xl text-sm tabular-nums transition-colors ${
                     done
                       ? "text-white font-bold"
                       : future

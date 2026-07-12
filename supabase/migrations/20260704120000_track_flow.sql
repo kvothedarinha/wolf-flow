@@ -44,6 +44,7 @@ CREATE TABLE public.habits (
   frequency TEXT NOT NULL DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly')),
   weekdays SMALLINT[] NOT NULL DEFAULT '{0,1,2,3,4,5,6}', -- 0 = domingo
   target_per_week SMALLINT NOT NULL DEFAULT 3 CHECK (target_per_week BETWEEN 1 AND 7),
+  group_name TEXT, -- agrupamento livre na tela Hoje (ex.: Manhã, Saúde)
   archived BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

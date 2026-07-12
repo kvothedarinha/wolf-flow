@@ -7,9 +7,11 @@ import { Flame, CheckCircle2, TrendingUp } from "lucide-react";
 import { useHabits, useEntries, HISTORY_DAYS } from "@/hooks/useHabits";
 import { HabitIcon } from "@/lib/habit-icons";
 import { StatTile } from "@/components/StatTile";
+import { Achievements } from "@/components/Achievements";
 import {
   entriesByHabit,
   currentStreak,
+  bestStreak,
   completionRate,
   isScheduledOn,
   toDateKey,
@@ -32,10 +34,17 @@ function StatsPage() {
   const totalLast7 = (entries ?? []).filter(
     (e) => e.entry_date >= toDateKey(subDays(today, 6)),
   ).length;
-  const bestStreak = active.reduce(
+  const maxCurrentStreak = active.reduce(
     (max, h) => Math.max(max, currentStreak(h, byHabit.get(h.id) ?? new Set(), today)),
     0,
   );
+  const longestStreakDays = active
+    .filter((h) => h.frequency !== "weekly")
+    .reduce(
+      (max, h) => Math.max(max, bestStreak(h, byHabit.get(h.id) ?? new Set(), HISTORY_DAYS, today)),
+      0,
+    );
+  const totalCheckins = (entries ?? []).length;
   const avgRate =
     active.length === 0
       ? 0
@@ -60,7 +69,7 @@ function StatsPage() {
         <StatTile
           icon={<Flame className="h-4 w-4" />}
           label="Maior streak"
-          value={String(bestStreak)}
+          value={String(maxCurrentStreak)}
         />
         <StatTile
           icon={<TrendingUp className="h-4 w-4" />}
@@ -106,6 +115,9 @@ function StatsPage() {
               ))}
             </CardContent>
           </Card>
+
+          <SectionLabel className="mt-7">Conquistas</SectionLabel>
+          <Achievements longestStreakDays={longestStreakDays} totalCheckins={totalCheckins} />
         </>
       )}
     </AppShell>
@@ -138,8 +150,9 @@ function HistoryHeatmap({
   const doneByDay = new Map<string, number>();
   for (const e of entries) doneByDay.set(e.entry_date, (doneByDay.get(e.entry_date) ?? 0) + 1);
 
-  const weeks = Math.ceil((HISTORY_DAYS + today.getDay() + 1) / 7);
-  const firstWeek = startOfWeek(subDays(today, HISTORY_DAYS), { weekStartsOn: 0 });
+  const HEAT_DAYS = 119; // ~17 semanas visíveis; a janela de dados é maior (HISTORY_DAYS)
+  const weeks = Math.ceil((HEAT_DAYS + today.getDay() + 1) / 7);
+  const firstWeek = startOfWeek(subDays(today, HEAT_DAYS), { weekStartsOn: 0 });
 
   const monthMarks: { col: number; label: string }[] = [];
   const grid: { key: string; ratio: number | null; label: string }[][] = [];

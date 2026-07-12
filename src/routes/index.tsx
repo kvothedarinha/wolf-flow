@@ -13,6 +13,7 @@ import { HabitIcon } from "@/lib/habit-icons";
 import {
   isScheduledOn,
   entriesByHabit,
+  groupHabits,
   currentStreak,
   completionsThisWeek,
   currentWeekDays,
@@ -101,25 +102,38 @@ function TodayPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent className="p-0 divide-y divide-border">
-            {scheduled.map((habit) => {
-              const dates = byHabit.get(habit.id) ?? new Set<string>();
-              const done = dates.has(dayKey);
-              return (
-                <HabitRow
-                  key={habit.id}
-                  habit={habit}
-                  done={done}
-                  streak={currentStreak(habit, dates, today)}
-                  weekCount={completionsThisWeek(habit, dates, today)}
-                  pending={toggle.isPending}
-                  onToggle={() => toggle.mutate({ habitId: habit.id, date: selectedDay, done })}
-                />
-              );
-            })}
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          {groupHabits(scheduled).map(({ group, habits: items }) => (
+            <div key={group ?? "__sem_grupo"}>
+              {group && (
+                <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  {group}
+                </div>
+              )}
+              <Card className="overflow-hidden">
+                <CardContent className="p-0 divide-y divide-border">
+                  {items.map((habit) => {
+                    const dates = byHabit.get(habit.id) ?? new Set<string>();
+                    const done = dates.has(dayKey);
+                    return (
+                      <HabitRow
+                        key={habit.id}
+                        habit={habit}
+                        done={done}
+                        streak={currentStreak(habit, dates, today)}
+                        weekCount={completionsThisWeek(habit, dates, today)}
+                        pending={toggle.isPending}
+                        onToggle={() =>
+                          toggle.mutate({ habitId: habit.id, date: selectedDay, done })
+                        }
+                      />
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
       )}
     </AppShell>
   );
@@ -189,7 +203,8 @@ function HabitRow({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 transition-opacity hover:bg-secondary/40 ${done ? "opacity-60" : ""}`}
+      className={`flex items-center gap-3 px-4 py-3 transition-opacity ${done ? "opacity-60" : ""}`}
+      style={{ backgroundColor: `${habit.color}12` }}
     >
       <Link
         to="/habit/$id"
