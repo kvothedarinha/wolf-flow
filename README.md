@@ -81,6 +81,13 @@ check-in dos hábitos com "Validar com Strava" ligado.
    **"Validar com Strava"** nos hábitos de exercício. A cada atividade nova,
    o check-in do dia é marcado com a nota "Validado pelo Strava".
 
+## App de relógio (Amazfit Bip 6)
+
+O diretório [`zepp-watch/`](zepp-watch/) tem um mini app Zepp OS que marca
+check-ins do pulso, pareado por código em **Perfil → Relógio**. Backend:
+Edge Function `watch-api` (`supabase functions deploy watch-api
+--no-verify-jwt`). Instruções completas em `zepp-watch/README.md`.
+
 ## Scripts
 
 | Comando          | Descrição                   |

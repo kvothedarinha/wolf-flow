@@ -3,10 +3,17 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogOut, Sun, Moon, Monitor, Activity } from "lucide-react";
+import { Loader2, LogOut, Sun, Moon, Monitor, Activity, Watch, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme, type Theme } from "@/hooks/useTheme";
@@ -82,6 +89,37 @@ function ProfilePage() {
     else {
       toast.success("Strava desconectado");
       queryClient.invalidateQueries({ queryKey: ["strava"] });
+    }
+  }
+
+  const { data: devices } = useQuery({
+    queryKey: ["devices", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("device_tokens")
+        .select("id, label, created_at, last_used_at")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+  const [pairCode, setPairCode] = useState<string | null>(null);
+
+  async function generatePairCode() {
+    if (!user) return;
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const { error } = await supabase.from("watch_pair_codes").insert({ code, user_id: user.id });
+    if (error) toast.error(error.message);
+    else setPairCode(code);
+  }
+
+  async function revokeDevice(id: string) {
+    const { error } = await supabase.from("device_tokens").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Dispositivo desconectado");
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     }
   }
 
@@ -172,6 +210,60 @@ function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <Label className="mb-2 block">Relógio</Label>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-accent/40 text-accent-foreground flex items-center justify-center shrink-0">
+              <Watch className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold">Amazfit / Zepp OS</div>
+              <div className="text-xs text-muted-foreground">
+                {devices?.length
+                  ? `${devices.length} dispositivo${devices.length > 1 ? "s" : ""} conectado${devices.length > 1 ? "s" : ""}`
+                  : "Marque check-ins direto do pulso"}
+              </div>
+            </div>
+            <Button size="sm" variant="outline" className="rounded-full" onClick={generatePairCode}>
+              Parear
+            </Button>
+          </div>
+          {(devices ?? []).map((d) => (
+            <div key={d.id} className="flex items-center justify-between mt-3 text-xs">
+              <span className="text-muted-foreground">
+                {d.label} · pareado em {new Date(d.created_at).toLocaleDateString("pt-BR")}
+                {d.last_used_at &&
+                  ` · usado ${new Date(d.last_used_at).toLocaleDateString("pt-BR")}`}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive"
+                aria-label="Revogar dispositivo"
+                onClick={() => revokeDevice(d.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!pairCode} onOpenChange={(open) => !open && setPairCode(null)}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle>Código de pareamento</DialogTitle>
+            <DialogDescription>
+              Digite este código no app Track Flow do relógio. Ele vale por 10 minutos.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="text-4xl font-extrabold tracking-[0.3em] tabular-nums py-4">
+            {pairCode}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {isLoading ? (
         <div className="text-sm text-muted-foreground text-center py-8">Carregando...</div>

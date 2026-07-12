@@ -106,3 +106,30 @@ CREATE TABLE public.strava_oauth_states (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ALTER TABLE public.strava_oauth_states ENABLE ROW LEVEL SECURITY;
+
+-- Dispositivos (relógio Zepp/atalhos): token com hash; criado pela Edge Function
+CREATE TABLE public.device_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  label TEXT NOT NULL DEFAULT 'Relógio',
+  token_hash TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_used_at TIMESTAMPTZ
+);
+ALTER TABLE public.device_tokens ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users view own device tokens" ON public.device_tokens FOR SELECT
+  USING (auth.uid() = user_id);
+CREATE POLICY "Users revoke own device tokens" ON public.device_tokens FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Códigos curtos de pareamento (o app web insere; a Edge Function consome)
+CREATE TABLE public.watch_pair_codes (
+  code TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.watch_pair_codes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users create own pair codes" ON public.watch_pair_codes FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users view own pair codes" ON public.watch_pair_codes FOR SELECT
+  USING (auth.uid() = user_id);

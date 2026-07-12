@@ -1,0 +1,9 @@
+{
+  "name": "track-flow-watch",
+  "version": "1.0.0",
+  "description": "Mini app Zepp OS do Track Flow (Amazfit Bip 6)",
+  "private": true,
+  "dependencies": {
+    "@zeppos/zml": "^0.0.28"
+  }
+}

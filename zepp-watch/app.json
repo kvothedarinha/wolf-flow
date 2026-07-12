@@ -1,0 +1,51 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appId": 0,
+    "appName": "Track Flow",
+    "appType": "app",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "assets/icon.png",
+    "vender": "trackflow",
+    "description": "Check-ins dos seus hábitos no pulso"
+  },
+  "permissions": ["device:os.local_storage", "data:user.info"],
+  "runtime": {
+    "apiVersion": {
+      "compatible": "3.0.0",
+      "target": "3.6.0",
+      "minVersion": "3.0"
+    }
+  },
+  "targets": {
+    "bip-6": {
+      "module": {
+        "page": {
+          "pages": ["page/index"]
+        },
+        "app-side": {
+          "path": "app-side/index"
+        }
+      },
+      "platforms": [
+        {
+          "name": "bip-6",
+          "deviceSource": 0
+        }
+      ],
+      "designWidth": 390
+    }
+  },
+  "i18n": {
+    "en-US": {
+      "appName": "Track Flow"
+    },
+    "pt-BR": {
+      "appName": "Track Flow"
+    }
+  },
+  "defaultLanguage": "en-US"
+}
