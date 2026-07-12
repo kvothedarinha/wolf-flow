@@ -46,6 +46,7 @@ export type Database = {
       habits: {
         Row: {
           archived: boolean;
+          auto_source: string | null;
           color: string;
           created_at: string;
           description: string | null;
@@ -62,6 +63,7 @@ export type Database = {
         };
         Insert: {
           archived?: boolean;
+          auto_source?: string | null;
           color?: string;
           created_at?: string;
           description?: string | null;
@@ -78,6 +80,7 @@ export type Database = {
         };
         Update: {
           archived?: boolean;
+          auto_source?: string | null;
           color?: string;
           created_at?: string;
           description?: string | null;
@@ -91,6 +94,36 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
           weekdays?: number[];
+        };
+        Relationships: [];
+      };
+      strava_connections: {
+        Row: {
+          access_token: string;
+          athlete_id: number;
+          created_at: string;
+          expires_at: string;
+          refresh_token: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          access_token: string;
+          athlete_id: number;
+          created_at?: string;
+          expires_at: string;
+          refresh_token: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          access_token?: string;
+          athlete_id?: number;
+          created_at?: string;
+          expires_at?: string;
+          refresh_token?: string;
+          updated_at?: string;
+          user_id?: string;
         };
         Relationships: [];
       };

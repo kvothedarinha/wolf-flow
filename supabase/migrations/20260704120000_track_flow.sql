@@ -47,6 +47,7 @@ CREATE TABLE public.habits (
   weekdays SMALLINT[] NOT NULL DEFAULT '{0,1,2,3,4,5,6}', -- 0 = domingo
   target_per_week SMALLINT NOT NULL DEFAULT 3 CHECK (target_per_week BETWEEN 1 AND 7),
   group_name TEXT, -- agrupamento livre na tela Hoje (ex.: Manhã, Saúde)
+  auto_source TEXT CHECK (auto_source IN ('strava')), -- check-in automático por exercício
   archived BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -77,3 +78,31 @@ CREATE POLICY "Users manage own habits" ON public.habits FOR ALL
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users manage own entries" ON public.habit_entries FOR ALL
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- Integração Strava: tokens gravados apenas pelas Edge Functions (service role)
+CREATE TABLE public.strava_connections (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  athlete_id BIGINT NOT NULL UNIQUE,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TRIGGER strava_connections_updated BEFORE UPDATE ON public.strava_connections
+FOR EACH ROW EXECUTE FUNCTION public.tg_set_updated_at();
+
+ALTER TABLE public.strava_connections ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users view own strava connection" ON public.strava_connections FOR SELECT
+  USING (auth.uid() = user_id);
+CREATE POLICY "Users delete own strava connection" ON public.strava_connections FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Estados temporários do OAuth (somente service role; sem policies)
+CREATE TABLE public.strava_oauth_states (
+  state UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.strava_oauth_states ENABLE ROW LEVEL SECURITY;

@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogOut, Sun, Moon, Monitor } from "lucide-react";
+import { Loader2, LogOut, Sun, Moon, Monitor, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme, type Theme } from "@/hooks/useTheme";
@@ -40,6 +40,50 @@ function ProfilePage() {
       return data;
     },
   });
+
+  const { data: strava } = useQuery({
+    queryKey: ["strava", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("strava_connections")
+        .select("athlete_id, created_at")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const [connecting, setConnecting] = useState(false);
+
+  useEffect(() => {
+    const status = new URLSearchParams(window.location.search).get("strava");
+    if (!status) return;
+    if (status === "conectado")
+      toast.success("Strava conectado! Seus treinos vão validar os hábitos marcados.");
+    else toast.error("Não foi possível conectar ao Strava. Tente de novo.");
+    window.history.replaceState({}, "", "/profile");
+    queryClient.invalidateQueries({ queryKey: ["strava"] });
+  }, [queryClient]);
+
+  async function connectStrava() {
+    setConnecting(true);
+    const { data, error } = await supabase.functions.invoke("strava-auth", {
+      body: { action: "start" },
+    });
+    setConnecting(false);
+    if (error || !data?.url) toast.error("Falha ao iniciar a conexão com o Strava");
+    else window.location.href = data.url;
+  }
+
+  async function disconnectStrava() {
+    if (!user) return;
+    const { error } = await supabase.from("strava_connections").delete().eq("user_id", user.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Strava desconectado");
+      queryClient.invalidateQueries({ queryKey: ["strava"] });
+    }
+  }
 
   const displayName = name ?? profile?.name ?? "";
 
@@ -86,6 +130,45 @@ function ProfilePage() {
                 {label}
               </button>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <Label className="mb-2 block">Conexões</Label>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-[#fc4c02]/15 text-[#fc4c02] flex items-center justify-center shrink-0">
+              <Activity className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold">Strava</div>
+              <div className="text-xs text-muted-foreground">
+                {strava
+                  ? `Conectado — atleta #${strava.athlete_id}`
+                  : "Valide exercícios automaticamente com seus treinos"}
+              </div>
+            </div>
+            {strava ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                onClick={disconnectStrava}
+              >
+                Desconectar
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="rounded-full"
+                onClick={connectStrava}
+                disabled={connecting}
+              >
+                {connecting && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
+                Conectar
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

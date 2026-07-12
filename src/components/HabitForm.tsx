@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { useSaveHabit } from "@/hooks/useHabits";
 import { HABIT_COLORS, WEEKDAY_LABELS, type Habit } from "@/lib/habits";
@@ -32,6 +33,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
   const [targetPerWeek, setTargetPerWeek] = useState(3);
   const [group, setGroup] = useState("");
   const [kind, setKind] = useState<"build" | "quit">("build");
+  const [autoStrava, setAutoStrava] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -43,6 +45,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
     setTargetPerWeek(habit?.target_per_week ?? 3);
     setGroup(habit?.group_name ?? "");
     setKind((habit?.kind as "build" | "quit") ?? "build");
+    setAutoStrava(habit?.auto_source === "strava");
   }, [open, habit]);
 
   function toggleWeekday(day: number) {
@@ -67,6 +70,7 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
         weekdays: kind === "quit" ? [0, 1, 2, 3, 4, 5, 6] : weekdays,
         target_per_week: targetPerWeek,
         group_name: group.trim() || null,
+        auto_source: kind === "build" && autoStrava ? "strava" : null,
       },
       {
         onSuccess: () => {
@@ -205,6 +209,20 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
                 </div>
               )}
             </>
+          )}
+
+          {kind === "build" && (
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-secondary/60 px-3 py-2.5">
+              <div>
+                <Label htmlFor="habit-strava" className="text-sm">
+                  Validar com Strava
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Treinos registrados no Strava marcam o check-in sozinhos (conecte no Perfil)
+                </p>
+              </div>
+              <Switch id="habit-strava" checked={autoStrava} onCheckedChange={setAutoStrava} />
+            </div>
           )}
 
           <div className="space-y-2">

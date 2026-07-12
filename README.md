@@ -45,6 +45,42 @@ bun run dev                 # http://localhost:5173
 Qualquer host que rode o build do Vite/TanStack Start também serve
 (`bun run build` gera `dist/`).
 
+## Integração Strava (opcional)
+
+Valida exercícios automaticamente: treinos registrados no Strava marcam o
+check-in dos hábitos com "Validar com Strava" ligado.
+
+1. Crie um app em [strava.com/settings/api](https://www.strava.com/settings/api).
+   Em **Authorization Callback Domain**, coloque `SEU-PROJETO.supabase.co`.
+2. Configure os segredos e faça o deploy das funções (CLI do Supabase):
+
+   ```sh
+   supabase secrets set \
+     STRAVA_CLIENT_ID=... \
+     STRAVA_CLIENT_SECRET=... \
+     STRAVA_VERIFY_TOKEN=um-token-aleatorio \
+     APP_URL=https://seu-app.vercel.app
+   supabase functions deploy strava-auth --no-verify-jwt
+   supabase functions deploy strava-webhook --no-verify-jwt
+   ```
+
+   > `--no-verify-jwt` é necessário: o callback OAuth e o webhook são chamados
+   > pelo Strava, sem JWT. A função valida o usuário por conta própria.
+
+3. Registre a assinatura do webhook (uma única vez):
+
+   ```sh
+   curl -X POST https://www.strava.com/api/v3/push_subscriptions \
+     -d client_id=SEU_CLIENT_ID \
+     -d client_secret=SEU_CLIENT_SECRET \
+     -d callback_url=https://SEU-PROJETO.supabase.co/functions/v1/strava-webhook \
+     -d verify_token=um-token-aleatorio
+   ```
+
+4. No app: **Perfil → Conexões → Conectar** ao Strava, e ligue
+   **"Validar com Strava"** nos hábitos de exercício. A cada atividade nova,
+   o check-in do dia é marcado com a nota "Validado pelo Strava".
+
 ## Scripts
 
 | Comando          | Descrição                   |

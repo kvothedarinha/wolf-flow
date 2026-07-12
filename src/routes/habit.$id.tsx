@@ -132,9 +132,16 @@ function HabitDetailPage() {
         </div>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-extrabold tracking-tight truncate">{habit.name}</h1>
-          <Badge variant="secondary" className="text-[10px] font-normal">
-            {scheduleLabel(habit)}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Badge variant="secondary" className="text-[10px] font-normal">
+              {scheduleLabel(habit)}
+            </Badge>
+            {habit.auto_source === "strava" && (
+              <Badge className="text-[10px] font-semibold bg-[#fc4c02]/15 text-[#fc4c02] border-transparent">
+                Strava
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
