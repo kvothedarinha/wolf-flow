@@ -7,11 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ProgressRing } from "@/components/ProgressRing";
 import { HabitCheckbox } from "@/components/HabitCheckbox";
 import { Button } from "@/components/ui/button";
-import { Flame, Plus } from "lucide-react";
+import { Flame, Plus, X, ShieldCheck } from "lucide-react";
 import { useHabits, useEntries, useToggleEntry } from "@/hooks/useHabits";
 import { HabitIcon } from "@/lib/habit-icons";
 import {
   isScheduledOn,
+  isQuit,
   entriesByHabit,
   groupHabits,
   currentStreak,
@@ -45,7 +46,10 @@ function TodayPage() {
   const scheduled = active.filter((h) => isScheduledOn(h, selectedDay));
   const byHabit = entriesByHabit(entries ?? []);
   const dayKey = toDateKey(selectedDay);
-  const doneCount = scheduled.filter((h) => byHabit.get(h.id)?.has(dayKey)).length;
+  const doneCount = scheduled.filter((h) => {
+    const hasEntry = byHabit.get(h.id)?.has(dayKey) ?? false;
+    return isQuit(h) ? !hasEntry : hasEntry;
+  }).length;
 
   return (
     <AppShell>
@@ -114,17 +118,17 @@ function TodayPage() {
                 <CardContent className="p-0 divide-y divide-border">
                   {items.map((habit) => {
                     const dates = byHabit.get(habit.id) ?? new Set<string>();
-                    const done = dates.has(dayKey);
+                    const hasEntry = dates.has(dayKey);
                     return (
                       <HabitRow
                         key={habit.id}
                         habit={habit}
-                        done={done}
+                        hasEntry={hasEntry}
                         streak={currentStreak(habit, dates, today)}
                         weekCount={completionsThisWeek(habit, dates, today)}
                         pending={toggle.isPending}
                         onToggle={() =>
-                          toggle.mutate({ habitId: habit.id, date: selectedDay, done })
+                          toggle.mutate({ habitId: habit.id, date: selectedDay, done: hasEntry })
                         }
                       />
                     );
@@ -188,22 +192,25 @@ function WeekStrip({
 
 function HabitRow({
   habit,
-  done,
+  hasEntry,
   streak,
   weekCount,
   pending,
   onToggle,
 }: {
   habit: Habit;
-  done: boolean;
+  hasEntry: boolean;
   streak: number;
   weekCount: number;
   pending: boolean;
   onToggle: () => void;
 }) {
+  const quit = isQuit(habit);
+  const done = quit ? !hasEntry : hasEntry;
+  const struck = !quit && hasEntry;
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 transition-opacity ${done ? "opacity-60" : ""}`}
+      className={`flex items-center gap-3 px-4 py-3 transition-opacity ${struck ? "opacity-60" : ""}`}
       style={{ backgroundColor: `${habit.color}12` }}
     >
       <Link
@@ -217,39 +224,70 @@ function HabitRow({
       </Link>
       <Link to="/habit/$id" params={{ id: habit.id }} className="flex-1 min-w-0">
         <div
-          className={`text-[15px] font-semibold truncate ${done ? "line-through decoration-[1.5px] text-muted-foreground" : ""}`}
+          className={`text-[15px] font-semibold truncate ${struck ? "line-through decoration-[1.5px] text-muted-foreground" : ""}`}
         >
           {habit.name}
         </div>
         <div className="text-xs text-muted-foreground flex items-center gap-2 tabular-nums">
-          {streak > 0 && (
-            <span className="inline-flex items-center gap-0.5 font-medium text-warning">
-              <Flame className="h-3 w-3" />
-              {streak}{" "}
-              {habit.frequency === "weekly"
-                ? streak === 1
-                  ? "semana"
-                  : "semanas"
-                : streak === 1
-                  ? "dia"
-                  : "dias"}
-            </span>
+          {quit ? (
+            hasEntry ? (
+              <span className="font-medium text-destructive">Recaída registrada neste dia</span>
+            ) : (
+              <span className="inline-flex items-center gap-0.5 font-medium text-success">
+                <ShieldCheck className="h-3 w-3" />
+                {streak} {streak === 1 ? "dia livre" : "dias livre"}
+              </span>
+            )
+          ) : (
+            <>
+              {streak > 0 && (
+                <span className="inline-flex items-center gap-0.5 font-medium text-warning">
+                  <Flame className="h-3 w-3" />
+                  {streak}{" "}
+                  {habit.frequency === "weekly"
+                    ? streak === 1
+                      ? "semana"
+                      : "semanas"
+                    : streak === 1
+                      ? "dia"
+                      : "dias"}
+                </span>
+              )}
+              {habit.frequency === "weekly" && (
+                <span>
+                  {weekCount}/{habit.target_per_week} esta semana
+                </span>
+              )}
+              {streak === 0 && habit.frequency !== "weekly" && <span>Comece uma sequência</span>}
+            </>
           )}
-          {habit.frequency === "weekly" && (
-            <span>
-              {weekCount}/{habit.target_per_week} esta semana
-            </span>
-          )}
-          {streak === 0 && habit.frequency !== "weekly" && <span>Comece uma sequência</span>}
         </div>
       </Link>
-      <HabitCheckbox
-        done={done}
-        color={habit.color}
-        disabled={pending}
-        onToggle={onToggle}
-        label={done ? `Desmarcar ${habit.name}` : `Concluir ${habit.name}`}
-      />
+      {quit ? (
+        <button
+          onClick={onToggle}
+          disabled={pending}
+          aria-label={
+            hasEntry ? `Remover recaída de ${habit.name}` : `Registrar recaída de ${habit.name}`
+          }
+          aria-pressed={hasEntry}
+          className={`h-8 w-8 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 ${
+            hasEntry
+              ? "bg-destructive border-destructive text-white"
+              : "border-border text-muted-foreground/60 hover:border-destructive/50 hover:text-destructive"
+          }`}
+        >
+          <X className="h-4 w-4" strokeWidth={3} />
+        </button>
+      ) : (
+        <HabitCheckbox
+          done={done}
+          color={habit.color}
+          disabled={pending}
+          onToggle={onToggle}
+          label={done ? `Desmarcar ${habit.name}` : `Concluir ${habit.name}`}
+        />
+      )}
     </div>
   );
 }

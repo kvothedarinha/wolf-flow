@@ -53,7 +53,7 @@ import {
   bestStreak,
   completionRate,
   scheduleLabel,
-  toDateKey,
+  isQuit,
   type HabitEntry,
 } from "@/lib/habits";
 import { toast } from "sonner";
@@ -103,10 +103,11 @@ function HabitDetailPage() {
   const doneDates = new Set(entriesByDate.keys());
   const today = new Date();
 
+  const quit = isQuit(habit);
   const streak = currentStreak(habit, doneDates, today);
   const best = bestStreak(habit, doneDates, HISTORY_DAYS, today);
   const rate = completionRate(habit, doneDates, 30, today);
-  const streakUnit = habit.frequency === "weekly" ? "sem" : "d";
+  const streakUnit = habit.frequency === "weekly" && !quit ? "sem" : "d";
 
   function handleDayClick(date: Date, entry: HabitEntry | undefined) {
     if (!entry) {
@@ -140,17 +141,17 @@ function HabitDetailPage() {
       <div className="grid grid-cols-2 gap-2.5 mb-4">
         <StatTile
           icon={<Flame className="h-4 w-4" />}
-          label="Streak atual"
+          label={quit ? "Dias livre" : "Streak atual"}
           value={`${streak}${streakUnit}`}
         />
         <StatTile
           icon={<Trophy className="h-4 w-4" />}
-          label="Melhor streak"
+          label={quit ? "Melhor período" : "Melhor streak"}
           value={`${best}${streakUnit}`}
         />
         <StatTile
           icon={<CheckCircle2 className="h-4 w-4" />}
-          label="Check-ins"
+          label={quit ? "Recaídas" : "Check-ins"}
           value={String(habitEntries.length)}
         />
         <StatTile
@@ -162,7 +163,9 @@ function HabitDetailPage() {
 
       <MonthCalendar habit={habit} entriesByDate={entriesByDate} onDayClick={handleDayClick} />
       <p className="text-[11px] text-muted-foreground text-center mt-2 mb-6">
-        Toque num dia para marcar; toque num dia concluído para anotar ou desmarcar.
+        {quit
+          ? "Toque num dia para registrar uma recaída; toque num dia marcado para anotar ou remover."
+          : "Toque num dia para marcar; toque num dia concluído para anotar ou desmarcar."}
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -225,7 +228,7 @@ function HabitDetailPage() {
           <Textarea
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Como foi? (opcional)"
+            placeholder={quit ? "O que aconteceu? (opcional)" : "Como foi? (opcional)"}
             rows={3}
           />
           <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -242,7 +245,7 @@ function HabitDetailPage() {
                 setNoteFor(null);
               }}
             >
-              Desmarcar check-in
+              {quit ? "Remover recaída" : "Desmarcar check-in"}
             </Button>
             <Button
               disabled={saveNote.isPending}

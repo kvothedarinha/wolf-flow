@@ -40,6 +40,8 @@ CREATE TABLE public.habits (
   description TEXT,
   icon TEXT NOT NULL DEFAULT 'check',
   color TEXT NOT NULL DEFAULT '#6366f1',
+  -- build: construir um hábito (check-in = sucesso); quit: largar um hábito (check-in = recaída)
+  kind TEXT NOT NULL DEFAULT 'build' CHECK (kind IN ('build', 'quit')),
   -- daily: segue os dias marcados em weekdays; weekly: meta livre de X check-ins na semana
   frequency TEXT NOT NULL DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly')),
   weekdays SMALLINT[] NOT NULL DEFAULT '{0,1,2,3,4,5,6}', -- 0 = domingo

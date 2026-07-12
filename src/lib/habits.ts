@@ -21,9 +21,15 @@ export function toDateKey(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-/** Um hábito diário só é cobrado nos dias da semana marcados; semanais valem todo dia. */
+/** Um hábito diário só é cobrado nos dias marcados; semanais e "largar" valem todo dia. */
 export function isScheduledOn(habit: Habit, date: Date): boolean {
+  if (habit.kind === "quit") return true;
   return habit.frequency === "weekly" || habit.weekdays.includes(date.getDay());
+}
+
+/** Para hábitos "largar", um check-in registra uma recaída. */
+export function isQuit(habit: Habit): boolean {
+  return habit.kind === "quit";
 }
 
 /** Dias da semana corrente (domingo a sábado). */
@@ -46,6 +52,19 @@ export function completionsThisWeek(
  * Dias não agendados não quebram a sequência; hoje ainda sem check-in também não.
  */
 export function currentStreak(habit: Habit, doneDates: Set<string>, today = new Date()): number {
+  if (habit.kind === "quit") {
+    // dias livres: conta de hoje para trás até a última recaída (ou a criação do hábito)
+    const createdKey = toDateKey(new Date(habit.created_at));
+    let streak = 0;
+    let day = today;
+    for (let i = 0; i < 730; i++) {
+      const key = toDateKey(day);
+      if (doneDates.has(key) || key < createdKey) break;
+      streak++;
+      day = subDays(day, 1);
+    }
+    return streak;
+  }
   if (habit.frequency === "weekly") return weeklyStreak(habit, doneDates, today);
 
   let streak = 0;
@@ -82,6 +101,22 @@ export function bestStreak(
   windowDays: number,
   today = new Date(),
 ): number {
+  if (habit.kind === "quit") {
+    const createdKey = toDateKey(new Date(habit.created_at));
+    let best = 0;
+    let run = 0;
+    for (let i = windowDays; i >= 0; i--) {
+      const key = toDateKey(subDays(today, i));
+      if (key < createdKey) continue;
+      if (doneDates.has(key)) {
+        run = 0;
+      } else {
+        run++;
+        best = Math.max(best, run);
+      }
+    }
+    return best;
+  }
   if (habit.frequency === "weekly") {
     let best = 0;
     let run = 0;
@@ -118,6 +153,7 @@ export function bestStreak(
 
 /** Rótulo curto da agenda do hábito (ex.: "Todos os dias", "S T Q", "3x por semana"). */
 export function scheduleLabel(habit: Habit): string {
+  if (habit.kind === "quit") return "Evitar todos os dias";
   if (habit.frequency === "weekly") return `${habit.target_per_week}x por semana`;
   if (habit.weekdays.length === 7) return "Todos os dias";
   return habit.weekdays.map((d) => WEEKDAY_LABELS[d]).join(" ");
@@ -130,6 +166,19 @@ export function completionRate(
   days: number,
   today = new Date(),
 ): number {
+  if (habit.kind === "quit") {
+    // sucesso = dia sem recaída, desde a criação do hábito
+    const createdKey = toDateKey(new Date(habit.created_at));
+    let counted = 0;
+    let clean = 0;
+    for (let i = 0; i < days; i++) {
+      const key = toDateKey(subDays(today, i));
+      if (key < createdKey) break;
+      counted++;
+      if (!doneDates.has(key)) clean++;
+    }
+    return counted === 0 ? 1 : clean / counted;
+  }
   if (habit.frequency === "weekly") {
     const weeks = Math.max(1, Math.floor(days / 7));
     const target = weeks * habit.target_per_week;

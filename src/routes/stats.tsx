@@ -14,6 +14,7 @@ import {
   bestStreak,
   completionRate,
   isScheduledOn,
+  isQuit,
   toDateKey,
   WEEKDAY_LABELS,
   type Habit,
@@ -31,7 +32,9 @@ function StatsPage() {
   const byHabit = entriesByHabit(entries ?? []);
   const last7 = Array.from({ length: 7 }, (_, i) => subDays(today, 6 - i));
 
-  const totalLast7 = (entries ?? []).filter(
+  const quitIds = new Set(active.filter(isQuit).map((h) => h.id));
+  const buildEntries = (entries ?? []).filter((e) => !quitIds.has(e.habit_id));
+  const totalLast7 = buildEntries.filter(
     (e) => e.entry_date >= toDateKey(subDays(today, 6)),
   ).length;
   const maxCurrentStreak = active.reduce(
@@ -44,7 +47,7 @@ function StatsPage() {
       (max, h) => Math.max(max, bestStreak(h, byHabit.get(h.id) ?? new Set(), HISTORY_DAYS, today)),
       0,
     );
-  const totalCheckins = (entries ?? []).length;
+  const totalCheckins = buildEntries.length;
   const avgRate =
     active.length === 0
       ? 0
@@ -147,8 +150,7 @@ function HistoryHeatmap({
   entries: HabitEntry[];
   today: Date;
 }) {
-  const doneByDay = new Map<string, number>();
-  for (const e of entries) doneByDay.set(e.entry_date, (doneByDay.get(e.entry_date) ?? 0) + 1);
+  const byHabit = entriesByHabit(entries);
 
   const HEAT_DAYS = 119; // ~17 semanas visíveis; a janela de dados é maior (HISTORY_DAYS)
   const weeks = Math.ceil((HEAT_DAYS + today.getDay() + 1) / 7);
@@ -168,13 +170,17 @@ function HistoryHeatmap({
         col.push({ key: toDateKey(day), ratio: null, label: "" });
         continue;
       }
-      const scheduled = habits.filter((h) => isScheduledOn(h, day)).length;
-      const done = doneByDay.get(toDateKey(day)) ?? 0;
-      const ratio = scheduled === 0 ? 0 : Math.min(1, done / scheduled);
+      const key = toDateKey(day);
+      const dayHabits = habits.filter((h) => isScheduledOn(h, day));
+      const done = dayHabits.filter((h) => {
+        const hasEntry = byHabit.get(h.id)?.has(key) ?? false;
+        return isQuit(h) ? !hasEntry : hasEntry;
+      }).length;
+      const ratio = dayHabits.length === 0 ? 0 : Math.min(1, done / dayHabits.length);
       col.push({
-        key: toDateKey(day),
+        key,
         ratio,
-        label: `${format(day, "d 'de' MMM", { locale: ptBR })}: ${done} check-in${done === 1 ? "" : "s"}`,
+        label: `${format(day, "d 'de' MMM", { locale: ptBR })}: ${done}/${dayHabits.length} hábitos em dia`,
       });
     }
     grid.push(col);

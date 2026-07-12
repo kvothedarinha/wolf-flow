@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   isScheduledOn,
+  isQuit,
   toDateKey,
   WEEKDAY_LABELS,
   type Habit,
@@ -46,6 +47,8 @@ export function MonthCalendar({
 
   const leading = month.getDay();
   const days = getDaysInMonth(month);
+  const quit = isQuit(habit);
+  const markColor = quit ? "var(--destructive)" : habit.color;
 
   return (
     <Card>
@@ -97,9 +100,12 @@ export function MonthCalendar({
             const future = isAfter(date, today);
             const scheduled = isScheduledOn(habit, date);
             const isToday = key === toDateKey(today);
-            // dia anterior também concluído e na mesma linha → conector de sequência
+            // dia anterior também concluído e na mesma linha → conector de sequência (só "construir")
             const linked =
-              done && date.getDay() !== 0 && entriesByDate.has(toDateKey(subDays(date, 1)));
+              !quit &&
+              done &&
+              date.getDay() !== 0 &&
+              entriesByDate.has(toDateKey(subDays(date, 1)));
             return (
               <div key={key} className="relative flex justify-center">
                 {linked && (
@@ -119,11 +125,11 @@ export function MonthCalendar({
                       ? "text-white font-bold"
                       : future
                         ? "text-muted-foreground/35"
-                        : scheduled
+                        : scheduled && !quit
                           ? "bg-secondary hover:bg-secondary/70"
                           : "text-muted-foreground hover:bg-secondary/50"
                   } ${isToday && !done ? "ring-2 ring-ring" : ""}`}
-                  style={done ? { backgroundColor: habit.color } : undefined}
+                  style={done ? { backgroundColor: markColor } : undefined}
                 >
                   {i + 1}
                   {entry?.note && (
