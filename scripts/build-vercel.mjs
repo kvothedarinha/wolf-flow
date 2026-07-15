@@ -36,7 +36,7 @@ export default function handler(request) {
 
 writeFileSync(
   join(fn, ".vc-config.json"),
-  JSON.stringify({ runtime: "edge", entrypoint: "entry.js" }, null, 2)
+  JSON.stringify({ runtime: "nodejs22.x", handler: "entry.js", launcherType: "Nodejs" }, null, 2)
 );
 console.log("✓ SSR Edge Function → .vercel/output/functions/ssr.func/");
 
