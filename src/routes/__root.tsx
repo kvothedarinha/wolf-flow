@@ -56,7 +56,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Track Flow — Acompanhe seus hábitos" },
+      { title: "Wolf Flow — Acompanhe seus hábitos" },
       {
         name: "description",
         content: "Crie hábitos, faça check-ins diários e acompanhe streaks e progresso.",
@@ -66,7 +66,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     scripts: [
       {
         // Aplica o tema salvo antes do primeiro paint para evitar flash
-        children: `try{var t=localStorage.getItem("tf-theme");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d)}catch(e){}`,
+        children: `try{var t=localStorage.getItem("wf-theme");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d)}catch(e){}`,
       },
     ],
   }),

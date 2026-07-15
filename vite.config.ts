@@ -8,8 +8,7 @@ export default defineConfig({
   plugins: [
     tsConfigPaths(),
     tailwindcss(),
-    // src/server.ts envolve o server-entry padrão para renderizar a página de erro SSR
-    tanstackStart({ server: { entry: "server" } }),
+    tanstackStart({ server: { preset: "vercel" } }),
     viteReact(),
   ],
 });

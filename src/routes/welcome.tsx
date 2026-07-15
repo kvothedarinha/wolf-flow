@@ -13,8 +13,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/welcome")({ component: WelcomePage });
 
-export const ONBOARDED_KEY = "tf-onboarded";
-export const WELCOME_PENDING_KEY = "tf-welcome-pending";
+export const ONBOARDED_KEY = "wf-onboarded";
+export const WELCOME_PENDING_KEY = "wf-welcome-pending";
 
 function WelcomePage() {
   const { session, loading } = useAuth();

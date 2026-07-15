@@ -256,7 +256,7 @@ function ProfilePage() {
           <DialogHeader>
             <DialogTitle>Código de pareamento</DialogTitle>
             <DialogDescription>
-              Digite este código no app Track Flow do relógio. Ele vale por 10 minutos.
+              Digite este código no app Wolf Flow do relógio. Ele vale por 10 minutos.
             </DialogDescription>
           </DialogHeader>
           <div className="text-4xl font-extrabold tracking-[0.3em] tabular-nums py-4">

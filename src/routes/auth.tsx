@@ -23,8 +23,8 @@ function AuthPage() {
   useEffect(() => {
     if (authLoading || !session) return;
     // Cadastro recém-feito neste dispositivo vai para o onboarding uma única vez
-    const pending = localStorage.getItem("tf-welcome-pending") === "1";
-    const onboarded = localStorage.getItem("tf-onboarded") === "1";
+    const pending = localStorage.getItem("wf-welcome-pending") === "1";
+    const onboarded = localStorage.getItem("wf-onboarded") === "1";
     navigate({ to: pending && !onboarded ? "/welcome" : "/" });
   }, [authLoading, session, navigate]);
 
@@ -42,7 +42,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        localStorage.setItem("tf-welcome-pending", "1");
+        localStorage.setItem("wf-welcome-pending", "1");
         toast.success("Conta criada! Entrando...");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -63,7 +63,7 @@ function AuthPage() {
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary mb-3">
             <Waves className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Track Flow</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Wolf Flow</h1>
           <p className="text-sm text-muted-foreground mt-1">Construa hábitos, um dia de cada vez</p>
         </div>
 

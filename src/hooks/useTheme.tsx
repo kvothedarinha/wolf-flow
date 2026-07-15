@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type Theme = "light" | "dark" | "system";
 
-const STORAGE_KEY = "tf-theme";
+const STORAGE_KEY = "wf-theme";
 
 function apply(theme: Theme) {
   const dark =
