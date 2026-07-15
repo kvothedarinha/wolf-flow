@@ -34,6 +34,12 @@ export default function handler(request) {
 `
 );
 
+// Tell Node.js to treat .js files in this directory as ESM
+writeFileSync(
+  join(fn, "package.json"),
+  JSON.stringify({ type: "module" }, null, 2)
+);
+
 writeFileSync(
   join(fn, ".vc-config.json"),
   JSON.stringify({ runtime: "nodejs22.x", handler: "entry.js", launcherType: "Nodejs" }, null, 2)
