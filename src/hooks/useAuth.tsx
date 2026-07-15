@@ -1,43 +1,42 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { dbCurrentAccount, dbSignOut, type LocalAccount } from "@/lib/local-db";
 
 interface AuthContextValue {
-  session: Session | null;
-  user: User | null;
+  user: LocalAccount | null;
+  session: { user: LocalAccount } | null;
   loading: boolean;
-  signOut: () => Promise<void>;
+  signOut: () => void;
+  refresh: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<LocalAccount | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setLoading(false);
-    });
+    setUser(dbCurrentAccount());
+    setLoading(false);
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "wf-session") setUser(dbCurrentAccount());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    setSession(null);
+  function signOut() {
+    dbSignOut();
+    setUser(null);
+  }
+
+  function refresh() {
+    setUser(dbCurrentAccount());
   }
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session: user ? { user } : null, loading, signOut, refresh }}>
       {children}
     </AuthContext.Provider>
   );

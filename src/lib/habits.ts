@@ -1,8 +1,31 @@
 import { format, startOfWeek, addDays, subDays, isSameDay } from "date-fns";
-import type { Tables } from "@/integrations/supabase/types";
 
-export type Habit = Tables<"habits">;
-export type HabitEntry = Tables<"habit_entries">;
+export interface Habit {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  color: string;
+  kind: string;
+  frequency: string;
+  weekdays: number[];
+  target_per_week: number;
+  group_name: string | null;
+  auto_source: string | null;
+  archived: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HabitEntry {
+  id: string;
+  habit_id: string;
+  user_id: string;
+  entry_date: string;
+  note: string | null;
+  created_at: string;
+}
 
 export const HABIT_COLORS = [
   "#6366f1", // indigo

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { dbSignIn, dbSignUp } from "@/lib/local-db";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/auth")({ component: AuthPage });
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading, refresh } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +22,6 @@ function AuthPage() {
 
   useEffect(() => {
     if (authLoading || !session) return;
-    // Cadastro recém-feito neste dispositivo vai para o onboarding uma única vez
     const pending = localStorage.getItem("wf-welcome-pending") === "1";
     const onboarded = localStorage.getItem("wf-onboarded") === "1";
     navigate({ to: pending && !onboarded ? "/welcome" : "/" });
@@ -33,22 +32,14 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { name },
-          },
-        });
-        if (error) throw error;
+        dbSignUp(name.trim(), email.trim(), password);
         localStorage.setItem("wf-welcome-pending", "1");
         toast.success("Conta criada! Entrando...");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        dbSignIn(email.trim(), password);
         toast.success("Bem-vindo de volta!");
       }
+      refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro inesperado");
     } finally {
