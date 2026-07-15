@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, isSameDay, isAfter, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent } from "@/components/ui/card";
-import { ProgressRing } from "@/components/ProgressRing";
+import { DayOrb } from "@/components/DayOrb";
 import { HabitCheckbox } from "@/components/HabitCheckbox";
 import { Button } from "@/components/ui/button";
 import { Flame, Plus, X, ShieldCheck } from "lucide-react";
@@ -41,6 +41,8 @@ function TodayPage() {
   const today = startOfDay(now);
   const [selectedDay, setSelectedDay] = useState(today);
   const isToday = isSameDay(selectedDay, today);
+  const [displayPct, setDisplayPct] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const active = (habits ?? []).filter((h) => !h.archived);
   const scheduled = active.filter((h) => isScheduledOn(h, selectedDay));
@@ -50,6 +52,23 @@ function TodayPage() {
     const hasEntry = byHabit.get(h.id)?.has(dayKey) ?? false;
     return isQuit(h) ? !hasEntry : hasEntry;
   }).length;
+  const targetPct = scheduled.length ? doneCount / scheduled.length : 0;
+
+  // Animate displayPct towards targetPct
+  useEffect(() => {
+    if (displayPct === targetPct) return;
+    let animId: number;
+    const tick = () => {
+      setDisplayPct((prev) => {
+        const diff = targetPct - prev;
+        if (Math.abs(diff) < 0.01) return targetPct;
+        return prev + diff * 0.15;
+      });
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, [targetPct]);
 
   return (
     <AppShell>
@@ -65,22 +84,50 @@ function TodayPage() {
       <WeekStrip today={today} selected={selectedDay} onSelect={setSelectedDay} />
 
       {scheduled.length > 0 && (
-        <Card className="mb-4">
-          <CardContent className="p-4 flex items-center gap-4">
-            <ProgressRing
-              value={scheduled.length ? doneCount / scheduled.length : 0}
-              label={isToday ? "do dia" : "do dia"}
-            />
-            <div>
-              <div className="text-lg font-extrabold tabular-nums">
-                {doneCount} de {scheduled.length}
+        <Card className="mb-4 overflow-hidden relative">
+          <CardContent className="p-6 min-h-48 flex flex-col items-center justify-center gap-4 relative z-10">
+            {/* Gradients backdrop with crossfade */}
+            <div className="absolute inset-0 -z-10 transition-opacity duration-1000">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(135deg, rgb(78, 205, 196), rgb(100, 200, 220))`,
+                  opacity: 1 - Math.min(displayPct, 1),
+                }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(135deg, rgb(255, 140, 40), rgb(255, 100, 150))`,
+                  opacity: Math.min(displayPct, 1),
+                }}
+              />
+            </div>
+
+            {/* Orb and counter */}
+            <div className="w-28 h-28">
+              <DayOrb
+                progress={displayPct}
+                onComplete={() => {
+                  if (!showConfetti) {
+                    setShowConfetti(true);
+                    setTimeout(() => setShowConfetti(false), 1500);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="text-center">
+              <div
+                className="text-5xl font-extrabold tabular-nums text-white drop-shadow-lg"
+                style={{
+                  fontSize: "clamp(2.5rem, 16vw, 3.5rem)",
+                }}
+              >
+                {Math.round(displayPct * 100)}%
               </div>
-              <p className="text-sm text-muted-foreground">
-                {doneCount === scheduled.length
-                  ? "Tudo concluído. Excelente!"
-                  : isToday
-                    ? "hábitos concluídos hoje"
-                    : "hábitos concluídos neste dia"}
+              <p className="text-sm text-white/90 mt-1">
+                {displayPct >= 0.99 ? "Dia perfeito!" : isToday ? "do dia" : "deste dia"}
               </p>
             </div>
           </CardContent>
