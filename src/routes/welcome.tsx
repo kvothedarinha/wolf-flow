@@ -45,7 +45,7 @@ function WelcomePage() {
   const isLast = current === 2;
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-6 py-8 overflow-y-auto">
+    <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-6 overflow-y-auto">
       <div className="w-full max-w-sm flex flex-col items-center">
         <div className="mb-8">
           <Logo />

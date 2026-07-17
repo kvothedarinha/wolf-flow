@@ -58,7 +58,7 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-background flex items-center justify-center p-4 py-8 overflow-y-auto">
+    <div className="min-h-dvh bg-background flex items-center justify-center p-4 overflow-y-auto">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="inline-flex mb-3">
