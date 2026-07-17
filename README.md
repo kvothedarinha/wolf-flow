@@ -1,11 +1,14 @@
-# Track Flow
+# Wolf Flow
 
 App de acompanhamento de hábitos: crie hábitos com dias fixos ou meta semanal,
 faça check-ins diários (inclusive retroativos na semana corrente), acompanhe
-streaks e veja o histórico geral em mapa de calor.
+streaks e veja o histórico geral em mapa de calor. Instalável como PWA — dá
+para adicionar à tela inicial do celular e abrir como um app nativo.
+
+**Produção:** https://wolfflow.vercel.app
 
 **Stack:** React 19 · TanStack Start/Router (SSR) · TanStack Query · Tailwind 4 +
-shadcn/ui · Supabase (auth + Postgres com RLS).
+shadcn/ui · Supabase (auth + Postgres com RLS) · PWA (manifest + service worker).
 
 ## Rodando localmente
 
@@ -26,29 +29,50 @@ bun run dev                 # http://localhost:5173
    supabase db push
    ```
 
-   > A migration `20260704120000_track_flow.sql` remove as tabelas do app
-   > anterior (Creator Hub) e cria `habits` e `habit_entries`.
+   > A migration `20260704120000_track_flow.sql` cria as tabelas `habits`,
+   > `habit_entries`, `profiles` e as de integrações opcionais (Strava,
+   > relógio), todas com Row Level Security.
 
 3. Copie a URL e a chave _publishable_ (Settings → API) para o `.env`.
+4. Em **Authentication → Sign In / Providers**, desligue "Confirm email" se
+   quiser cadastro instantâneo sem exigir clique em link de confirmação
+   (recomendado para testes; no plano gratuito o envio de e-mails é limitado).
 
 ## Deploy (Vercel)
 
-1. Importe este repositório em [vercel.com/new](https://vercel.com/new) — a
-   Vercel detecta TanStack Start automaticamente.
-2. Em **Environment Variables**, defina:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+O projeto já roda gratuito no plano Hobby da Vercel — sem custo, desde que o
+Supabase também fique no plano Free.
+
+1. Importe este repositório em [vercel.com/new](https://vercel.com/new).
+2. Em **Environment Variables**, defina (mesmos valores do `.env`):
+   - `VITE_SUPABASE_URL` / `SUPABASE_URL`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_PUBLISHABLE_KEY`
 3. Em **Authentication → URL Configuration** no Supabase, adicione a URL do
-   deploy (ex.: `https://track-flow.vercel.app`) como _Site URL_ e em
-   _Redirect URLs_, para o e-mail de confirmação de cadastro funcionar.
+   deploy (ex.: `https://seu-app.vercel.app`) como _Site URL_ e em
+   _Redirect URLs_, para o e-mail de confirmação de cadastro funcionar (se
+   "Confirm email" estiver ligado).
 
-Qualquer host que rode o build do Vite/TanStack Start também serve
-(`bun run build` gera `dist/`).
+O build usa a Vercel Build Output API v3 via `scripts/build-vercel.mjs`: o
+comando `bun run build` roda o build SSR do TanStack Start e depois empacota
+a função serverless (rastreando as dependências reais com `@vercel/nft`, já
+que o build de SSR do Vite não inlina pacotes de `node_modules`). Qualquer
+outro host que rode o build do Vite/TanStack Start também serve — adaptando
+esse script de empacotamento.
 
-## Integração Strava (opcional)
+## PWA (instalável)
+
+`public/manifest.webmanifest` e `public/sw.js` tornam o app instalável na
+tela inicial (Android/desktop: prompt "Instalar app"; iOS: Compartilhar →
+"Adicionar à Tela de Início"). O service worker cacheia só os assets
+estáticos com hash (`/assets`, `/icons`) — nunca o HTML — para não servir
+uma página desatualizada de login ou dados do usuário.
+
+## Integração Strava (opcional, não configurada)
 
 Valida exercícios automaticamente: treinos registrados no Strava marcam o
-check-in dos hábitos com "Validar com Strava" ligado.
+check-in dos hábitos com "Validar com Strava" ligado. O schema do banco e o
+código das Edge Functions já existem, mas dependem de credenciais do Strava
+que não estão configuradas neste projeto.
 
 1. Crie um app em [strava.com/settings/api](https://www.strava.com/settings/api).
    Em **Authorization Callback Domain**, coloque `SEU-PROJETO.supabase.co`.
@@ -81,7 +105,7 @@ check-in dos hábitos com "Validar com Strava" ligado.
    **"Validar com Strava"** nos hábitos de exercício. A cada atividade nova,
    o check-in do dia é marcado com a nota "Validado pelo Strava".
 
-## App de relógio (Amazfit Bip 6)
+## App de relógio (Amazfit Bip 6) — opcional, não configurado
 
 O diretório [`zepp-watch/`](zepp-watch/) tem um mini app Zepp OS que marca
 check-ins do pulso, pareado por código em **Perfil → Relógio**. Backend:
