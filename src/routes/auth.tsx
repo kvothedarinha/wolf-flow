@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Waves, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/auth")({ component: AuthPage });
 
@@ -57,11 +58,11 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-background flex items-center justify-center p-4 py-8 overflow-y-auto">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary mb-3">
-            <Waves className="h-6 w-6" />
+          <div className="inline-flex mb-3">
+            <Logo />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">Wolf Flow</h1>
           <p className="text-sm text-muted-foreground mt-1">Construa hábitos, um dia de cada vez</p>

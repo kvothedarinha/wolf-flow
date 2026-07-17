@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { CalendarCheck, ListTodo, BarChart3, User, LogOut, Waves } from "lucide-react";
+import { CalendarCheck, ListTodo, BarChart3, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 
 const nav = [
   { to: "/", label: "Hoje", icon: CalendarCheck },
@@ -22,23 +23,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (loading || !session) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+      <div className="min-h-dvh flex items-center justify-center text-muted-foreground">
         Carregando...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-3xl px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-accent text-accent-foreground flex items-center justify-center">
-              <Waves className="h-4 w-4" />
-            </div>
+            <Logo size="sm" />
             <div>
-              <div className="text-sm font-extrabold leading-tight tracking-tight">Track Flow</div>
+              <div className="text-sm font-extrabold leading-tight tracking-tight">Wolf Flow</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                 Hábitos
               </div>
@@ -55,10 +54,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* Content */}
-      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-6 pb-24">{children}</main>
+      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+        {children}
+      </main>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-card/95 backdrop-blur md:bg-card">
+      <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-card/95 backdrop-blur md:bg-card pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto max-w-3xl grid grid-cols-4">
           {nav.map((item) => {
             const Icon = item.icon;

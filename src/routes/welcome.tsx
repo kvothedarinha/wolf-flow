@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { ProgressRing } from "@/components/ProgressRing";
-import { Check, CalendarDays, Flame, Waves } from "lucide-react";
+import { Check, CalendarDays, Flame } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/welcome")({ component: WelcomePage });
 
@@ -44,10 +45,10 @@ function WelcomePage() {
   const isLast = current === 2;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+    <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-6 py-8 overflow-y-auto">
       <div className="w-full max-w-sm flex flex-col items-center">
-        <div className="h-12 w-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center mb-8">
-          <Waves className="h-6 w-6" />
+        <div className="mb-8">
+          <Logo />
         </div>
 
         <Carousel setApi={setApi} className="w-full">
