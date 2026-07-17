@@ -1,42 +1,43 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { dbCurrentAccount, dbSignOut, type LocalAccount } from "@/lib/local-db";
+import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextValue {
-  user: LocalAccount | null;
-  session: { user: LocalAccount } | null;
+  session: Session | null;
+  user: User | null;
   loading: boolean;
-  signOut: () => void;
-  refresh: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<LocalAccount | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUser(dbCurrentAccount());
-    setLoading(false);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      setLoading(false);
+    });
 
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "wf-session") setUser(dbCurrentAccount());
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  function signOut() {
-    dbSignOut();
-    setUser(null);
-  }
-
-  function refresh() {
-    setUser(dbCurrentAccount());
+  async function signOut() {
+    await supabase.auth.signOut();
+    setSession(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, session: user ? { user } : null, loading, signOut, refresh }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
