@@ -52,12 +52,37 @@ for (const relPath of fileList) {
 }
 console.log(`✓ ${copied} arquivos de node_modules rastreados e copiados`);
 
-// Wrapper que adapta o export { default: { fetch } } do server.ts para o formato Vercel Edge
+// Wrapper que adapta o export { default: { fetch } } do server.ts (Web Request/Response)
+// para a assinatura Node.js (req, res) que o runtime "Nodejs" da Vercel espera.
 writeFileSync(
   join(fn, "entry.js"),
   `import server from "./server.js";
-export default function handler(request) {
-  return server.fetch(request, {}, {});
+
+export default async function handler(req, res) {
+  const host = req.headers.host ?? "localhost";
+  const url = \`https://\${host}\${req.url}\`;
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) headers.set(key, value.join(", "));
+    else headers.set(key, value);
+  }
+
+  const hasBody = req.method !== "GET" && req.method !== "HEAD";
+  const request = new Request(url, {
+    method: req.method,
+    headers,
+    body: hasBody ? req : undefined,
+    duplex: hasBody ? "half" : undefined,
+  });
+
+  const response = await server.fetch(request, {}, {});
+  res.statusCode = response.status;
+  response.headers.forEach((value, key) => res.setHeader(key, value));
+  if (response.body) {
+    for await (const chunk of response.body) res.write(chunk);
+  }
+  res.end();
 }
 `
 );
