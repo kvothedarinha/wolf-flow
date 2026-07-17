@@ -6,8 +6,9 @@
  *   .vercel/output/config.json <- roteamento
  */
 import { cpSync, mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
-import { resolve, join } from "node:path";
+import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { nodeFileTrace } from "@vercel/nft";
 
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const out = resolve(root, ".vercel/output");
@@ -19,10 +20,37 @@ mkdirSync(`${out}/static`, { recursive: true });
 cpSync(resolve(root, "dist/client"), `${out}/static`, { recursive: true });
 console.log("✓ Static assets → .vercel/output/static/");
 
-// SSR Edge Function
+// SSR Serverless Function
 const fn = join(out, "functions/ssr.func");
 mkdirSync(fn, { recursive: true });
 cpSync(resolve(root, "dist/server"), fn, { recursive: true });
+
+// Rastreia as dependências (node_modules) realmente usadas pelo bundle SSR
+// (o build de SSR do Vite não inlina pacotes de node_modules — ex.: h3-v2 —
+// então eles precisam ser copiados para dentro da function).
+import { readdirSync } from "node:fs";
+function listJsFiles(dir) {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  return entries.flatMap((e) => {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) return listJsFiles(p);
+    return e.name.endsWith(".js") ? [p] : [];
+  });
+}
+const entryFiles = listJsFiles(resolve(root, "dist/server"));
+
+const { fileList } = await nodeFileTrace(entryFiles, { base: root });
+let copied = 0;
+for (const relPath of fileList) {
+  if (!relPath.includes("node_modules")) continue;
+  const src = join(root, relPath);
+  const relFromModules = relPath.slice(relPath.indexOf("node_modules"));
+  const dest = join(fn, relFromModules);
+  mkdirSync(dirname(dest), { recursive: true });
+  cpSync(src, dest);
+  copied++;
+}
+console.log(`✓ ${copied} arquivos de node_modules rastreados e copiados`);
 
 // Wrapper que adapta o export { default: { fetch } } do server.ts para o formato Vercel Edge
 writeFileSync(
