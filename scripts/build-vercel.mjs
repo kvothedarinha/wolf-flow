@@ -109,7 +109,10 @@ writeFileSync(
         // Assets com hash → cache estático direto
         { src: "^/assets/(.+)$", dest: "/assets/$1" },
         // Qualquer outro arquivo com extensão estática → static/
-        { src: "^/(.+\\.(?:js|css|ico|png|jpg|jpeg|svg|woff2?|ttf|json|webp|avif))$", dest: "/$1" },
+        {
+          src: "^/(.+\\.(?:js|css|ico|png|jpg|jpeg|svg|woff2?|ttf|json|webmanifest|webp|avif))$",
+          dest: "/$1",
+        },
         // Tudo mais → SSR
         { src: ".*", dest: "/ssr" },
       ],
