@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format, isSameDay, isAfter, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent } from "@/components/ui/card";
-import { DayOrb } from "@/components/DayOrb";
 import { HabitCheckbox } from "@/components/HabitCheckbox";
 import { Button } from "@/components/ui/button";
 import { Flame, Plus, X, ShieldCheck } from "lucide-react";
@@ -41,8 +40,8 @@ function TodayPage() {
   const today = startOfDay(now);
   const [selectedDay, setSelectedDay] = useState(today);
   const isToday = isSameDay(selectedDay, today);
-  const [displayPct, setDisplayPct] = useState(0);
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [confetti, setConfetti] = useState<ConfettiParticle[] | null>(null);
+  const wasCompleteRef = useRef<{ day: string; complete: boolean }>({ day: "", complete: false });
 
   const active = (habits ?? []).filter((h) => !h.archived);
   const scheduled = active.filter((h) => isScheduledOn(h, selectedDay));
@@ -52,23 +51,20 @@ function TodayPage() {
     const hasEntry = byHabit.get(h.id)?.has(dayKey) ?? false;
     return isQuit(h) ? !hasEntry : hasEntry;
   }).length;
-  const targetPct = scheduled.length ? doneCount / scheduled.length : 0;
+  const pct = scheduled.length ? doneCount / scheduled.length : 0;
+  const perfect = scheduled.length > 0 && pct >= 1;
 
-  // Animate displayPct towards targetPct
+  // Confetti burst the first time the day reaches 100% completion
   useEffect(() => {
-    if (displayPct === targetPct) return;
-    let animId: number;
-    const tick = () => {
-      setDisplayPct((prev) => {
-        const diff = targetPct - prev;
-        if (Math.abs(diff) < 0.01) return targetPct;
-        return prev + diff * 0.15;
-      });
-      animId = requestAnimationFrame(tick);
-    };
-    animId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animId);
-  }, [targetPct]);
+    const prev = wasCompleteRef.current;
+    if (prev.day === dayKey && perfect && !prev.complete) {
+      setConfetti(makeConfetti());
+      const t = setTimeout(() => setConfetti(null), 1300);
+      wasCompleteRef.current = { day: dayKey, complete: perfect };
+      return () => clearTimeout(t);
+    }
+    wasCompleteRef.current = { day: dayKey, complete: perfect };
+  }, [dayKey, perfect]);
 
   return (
     <AppShell>
@@ -85,49 +81,36 @@ function TodayPage() {
 
       {scheduled.length > 0 && (
         <Card className="mb-4 overflow-hidden relative">
-          <CardContent className="p-6 min-h-48 flex flex-col items-center justify-center gap-4 relative z-10">
-            {/* Gradients backdrop with crossfade */}
-            <div className="absolute inset-0 -z-10 transition-opacity duration-1000">
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(135deg, rgb(78, 205, 196), rgb(100, 200, 220))`,
-                  opacity: 1 - Math.min(displayPct, 1),
-                }}
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(135deg, rgb(255, 140, 40), rgb(255, 100, 150))`,
-                  opacity: Math.min(displayPct, 1),
-                }}
-              />
-            </div>
-
-            {/* Orb and counter */}
-            <div className="w-28 h-28">
-              <DayOrb
-                progress={displayPct}
-                onComplete={() => {
-                  if (!showConfetti) {
-                    setShowConfetti(true);
-                    setTimeout(() => setShowConfetti(false), 1500);
-                  }
-                }}
-              />
-            </div>
-
-            <div className="text-center">
-              <div
-                className="text-5xl font-extrabold tabular-nums text-white drop-shadow-lg"
-                style={{
-                  fontSize: "clamp(2.5rem, 16vw, 3.5rem)",
-                }}
-              >
-                {Math.round(displayPct * 100)}%
+          <CardContent className="p-5 flex items-center gap-4 relative">
+            {confetti && (
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {confetti.map((p) => (
+                  <span
+                    key={p.id}
+                    className="absolute top-1.5 block rounded-sm"
+                    style={{
+                      left: `${p.left}%`,
+                      width: 6,
+                      height: 10,
+                      background: p.color,
+                      transform: `rotate(${p.rot}deg)`,
+                      animation: `wf-confetti-fall 1.1s ${p.delay}ms ease-in forwards`,
+                    }}
+                  />
+                ))}
               </div>
-              <p className="text-sm text-white/90 mt-1">
-                {displayPct >= 0.99 ? "Dia perfeito!" : isToday ? "do dia" : "deste dia"}
+            )}
+
+            <ProgressRing pct={pct} perfect={perfect} />
+
+            <div>
+              <div className="text-[28px] font-extrabold tabular-nums leading-none">
+                {Math.round(pct * 100)}%
+              </div>
+              <p className="text-[12.5px] text-muted-foreground mt-1">
+                {perfect
+                  ? "Dia perfeito!"
+                  : `${doneCount} de ${scheduled.length} hábitos feitos hoje`}
               </p>
             </div>
           </CardContent>
@@ -200,9 +183,22 @@ function WeekStrip({
   selected: Date;
   onSelect: (d: Date) => void;
 }) {
+  const days = currentWeekDays(today);
+  const selIdx = days.findIndex((d) => isSameDay(d, selected));
   return (
-    <div className="grid grid-cols-7 gap-1.5 mb-5">
-      {currentWeekDays(today).map((day) => {
+    <div className="relative grid grid-cols-7 gap-1.5 mb-5">
+      {selIdx >= 0 && (
+        <div
+          aria-hidden
+          className="absolute top-0 left-0 h-full rounded-2xl bg-accent shadow-sm"
+          style={{
+            width: "calc((100% - 6 * 0.375rem) / 7)",
+            transform: `translateX(calc(${selIdx} * 100% + ${selIdx} * 0.375rem))`,
+            transition: "transform .28s cubic-bezier(.3,1,.4,1)",
+          }}
+        />
+      )}
+      {days.map((day) => {
         const future = isAfter(day, today);
         const isSel = isSameDay(day, selected);
         const isTod = isSameDay(day, today);
@@ -211,12 +207,12 @@ function WeekStrip({
             key={toDateKey(day)}
             disabled={future}
             onClick={() => onSelect(day)}
-            className={`flex flex-col items-center gap-0.5 rounded-2xl py-2.5 transition-colors ${
+            className={`relative z-10 flex flex-col items-center gap-0.5 rounded-2xl py-2.5 bg-transparent transition-colors duration-200 ${
               isSel
-                ? "bg-accent text-accent-foreground shadow-sm"
+                ? "text-accent-foreground"
                 : future
                   ? "text-muted-foreground/40"
-                  : "bg-card text-muted-foreground hover:bg-secondary"
+                  : "text-muted-foreground"
             }`}
             aria-label={format(day, "EEEE, d 'de' MMMM", { locale: ptBR })}
             aria-pressed={isSel}
@@ -255,16 +251,35 @@ function HabitRow({
   const quit = isQuit(habit);
   const done = quit ? !hasEntry : hasEntry;
   const struck = !quit && hasEntry;
+
+  const prevStreakRef = useRef(streak);
+  const [bump, setBump] = useState(false);
+  useEffect(() => {
+    if (streak > prevStreakRef.current) {
+      setBump(true);
+      const t = setTimeout(() => setBump(false), 500);
+      prevStreakRef.current = streak;
+      return () => clearTimeout(t);
+    }
+    prevStreakRef.current = streak;
+  }, [streak]);
+
+  const [popping, setPopping] = useState(false);
+  function handleToggle() {
+    setPopping(true);
+    setTimeout(() => setPopping(false), 180);
+    onToggle();
+  }
+
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3 transition-opacity ${struck ? "opacity-60" : ""}`}
-      style={{ backgroundColor: `${habit.color}12` }}
     >
       <Link
         to="/habit/$id"
         params={{ id: habit.id }}
-        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+        className="habit-icon-circle h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: `${habit.color}1c`, color: habit.color }}
         aria-label={`Detalhes de ${habit.name}`}
       >
         <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
@@ -288,7 +303,10 @@ function HabitRow({
           ) : (
             <>
               {streak > 0 && (
-                <span className="inline-flex items-center gap-0.5 font-medium text-warning">
+                <span
+                  className="inline-flex items-center gap-0.5 font-medium text-warning"
+                  style={{ animation: bump ? "wf-streak-flash .5s ease" : "none" }}
+                >
                   <Flame className="h-3 w-3" />
                   {streak}{" "}
                   {habit.frequency === "weekly"
@@ -312,17 +330,21 @@ function HabitRow({
       </Link>
       {quit ? (
         <button
-          onClick={onToggle}
+          onClick={handleToggle}
           disabled={pending}
           aria-label={
             hasEntry ? `Remover recaída de ${habit.name}` : `Registrar recaída de ${habit.name}`
           }
           aria-pressed={hasEntry}
-          className={`h-8 w-8 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 ${
+          className={`h-11 w-11 rounded-xl border-2 flex items-center justify-center shrink-0 transition-colors duration-150 ${
             hasEntry
               ? "bg-destructive border-destructive text-white"
               : "border-border text-muted-foreground/60 hover:border-destructive/50 hover:text-destructive"
           }`}
+          style={{
+            transform: popping ? "scale(1.15)" : "scale(1)",
+            transition: "transform .18s cubic-bezier(.34,1.56,.64,1)",
+          }}
         >
           <X className="h-4 w-4" strokeWidth={3} />
         </button>
@@ -336,5 +358,60 @@ function HabitRow({
         />
       )}
     </div>
+  );
+}
+
+interface ConfettiParticle {
+  id: number;
+  left: number;
+  rot: number;
+  color: string;
+  delay: number;
+}
+
+const CONFETTI_COLORS = ["#4ecdc4", "#ff8c28", "#ff6496", "#38bdf8", "#a78bfa"];
+
+function makeConfetti(): ConfettiParticle[] {
+  return Array.from({ length: 14 }, (_, i) => ({
+    id: i,
+    left: 6 + Math.random() * 88,
+    rot: -30 + Math.random() * 60,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    delay: Math.random() * 250,
+  }));
+}
+
+/** Anel de progresso SVG do card do dia. */
+function ProgressRing({ pct, perfect }: { pct: number; perfect: boolean }) {
+  const r = 27;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg
+      width={64}
+      height={64}
+      viewBox="0 0 64 64"
+      className={`shrink-0 ${perfect ? "animate-[wf-ring-glow_1.6s_ease-in-out_infinite]" : ""}`}
+      style={{ transform: "rotate(-90deg)" }}
+    >
+      <defs>
+        <linearGradient id="wf-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="rgb(78,205,196)" />
+          <stop offset="100%" stopColor="rgb(255,140,40)" />
+        </linearGradient>
+      </defs>
+      <circle cx={32} cy={32} r={r} fill="none" stroke="var(--secondary)" strokeWidth={7} />
+      <circle
+        cx={32}
+        cy={32}
+        r={r}
+        fill="none"
+        stroke="url(#wf-ring-gradient)"
+        strokeWidth={7}
+        strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - pct)}
+        style={{ transition: "stroke-dashoffset .6s cubic-bezier(.34,1,.4,1)" }}
+      />
+    </svg>
   );
 }

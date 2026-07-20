@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Flame, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -51,35 +52,66 @@ function BadgeRow({
     <div>
       <div className="text-xs font-bold text-muted-foreground mb-2">{title}</div>
       <div className="grid grid-cols-3 gap-2">
-        {milestones.map((m) => {
-          const unlocked = reached >= m;
-          return (
-            <div
-              key={m}
-              className="flex flex-col items-center gap-1"
-              title={unlocked ? "Conquistado" : `Alcance ${m}${unit ? ` ${unit}` : ""}`}
-            >
-              <div
-                className={`h-12 w-12 rounded-2xl rotate-45 flex items-center justify-center transition-colors ${
-                  unlocked
-                    ? "bg-warning text-white shadow-sm"
-                    : "bg-secondary text-muted-foreground/50"
-                }`}
-              >
-                <span className="-rotate-45">{icon}</span>
-              </div>
-              <span
-                className={`text-[11px] tabular-nums mt-1 ${
-                  unlocked ? "font-bold" : "text-muted-foreground"
-                }`}
-              >
-                {m}
-                {unit ? ` ${unit}` : ""}
-              </span>
-            </div>
-          );
-        })}
+        {milestones.map((m) => (
+          <Medal key={m} milestone={m} reached={reached} unit={unit} icon={icon} />
+        ))}
       </div>
+    </div>
+  );
+}
+
+function Medal({
+  milestone,
+  reached,
+  unit,
+  icon,
+}: {
+  milestone: number;
+  reached: number;
+  unit: string;
+  icon: React.ReactNode;
+}) {
+  const unlocked = reached >= milestone;
+  const wasUnlockedRef = useRef(unlocked);
+  const [flashing, setFlashing] = useState(false);
+
+  useEffect(() => {
+    if (unlocked && !wasUnlockedRef.current) {
+      setFlashing(true);
+      const t = setTimeout(() => setFlashing(false), 900);
+      wasUnlockedRef.current = unlocked;
+      return () => clearTimeout(t);
+    }
+    wasUnlockedRef.current = unlocked;
+  }, [unlocked]);
+
+  return (
+    <div
+      className="flex flex-col items-center gap-1"
+      title={unlocked ? "Conquistado" : `Alcance ${milestone}${unit ? ` ${unit}` : ""}`}
+    >
+      <div
+        className="h-12 w-12 rounded-full flex items-center justify-center transition-colors"
+        style={{
+          background: unlocked
+            ? "linear-gradient(135deg, var(--warning), color-mix(in oklch, var(--warning) 80%, black))"
+            : "var(--secondary)",
+          color: unlocked ? "#fff" : "var(--muted-foreground)",
+          animation: flashing
+            ? "wf-unlock-bounce .6s ease, wf-glow-pulse 1.1s ease"
+            : "none",
+        }}
+      >
+        {icon}
+      </div>
+      <span
+        className={`text-[11px] tabular-nums mt-1 ${
+          unlocked ? "font-bold" : "text-muted-foreground"
+        }`}
+      >
+        {milestone}
+        {unit ? ` ${unit}` : ""}
+      </span>
     </div>
   );
 }

@@ -175,15 +175,12 @@ function HabitCard({
   onDelete: () => void;
 }) {
   return (
-    <div
-      className="flex items-center gap-3 px-4 py-3 transition-colors"
-      style={{ backgroundColor: `${habit.color}12` }}
-    >
+    <div className="flex items-center gap-3 px-4 py-3">
       <Link
         to="/habit/$id"
         params={{ id: habit.id }}
-        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+        className="habit-icon-circle h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: `${habit.color}1c`, color: habit.color }}
         aria-label={`Detalhes de ${habit.name}`}
       >
         <HabitIcon name={habit.icon} className="h-4.5 w-4.5" />
